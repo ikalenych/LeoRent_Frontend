@@ -1,0 +1,32 @@
+@import url("https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap");
+
+@import "tailwindcss";
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@theme {
+  --font-serif: "Liberation Serif", Georgia, serif;
+  --font-display: "Public Sans", sans-serif;
+
+  --color-surface: #ffffff;
+  --color-page: #f8fafc;
+
+  --color-primary: #10b981;
+  --color-primary-hover: #059669;
+
+  --color-realtor: #3b82f6;
+
+  --color-text-title: #0f1729;
+  --color-text-description: #475569;
+}
