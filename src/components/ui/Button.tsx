@@ -13,7 +13,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "bg-primary text-white hover:bg-primary-hover shadow-[0_10px_20px_rgba(16,185,129,0.25)]",
+    "bg-primary text-white hover:bg-primary-hover font-semibold shadow-[0_10px_20px_rgba(16,185,129,0.25)]",
   secondary:
     "bg-surface border border-gray-200 text-text-title hover:bg-gray-50",
   outline:
@@ -43,7 +43,7 @@ export function Button({
       type={type}
       disabled={disabled || loading}
       className={[
-        "inline-flex items-center justify-center gap-2 rounded-[14px] font-display font-semibold transition-all duration-200",
+        "inline-flex items-center justify-center gap-2 rounded-[14px] font-display font-normal transition-all duration-200",
         variantClasses[variant],
         sizeClasses[size],
         fullWidth ? "w-full" : "",
