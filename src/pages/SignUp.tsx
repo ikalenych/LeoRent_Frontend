@@ -21,7 +21,6 @@ export default function SignUp() {
         <Input
           label="Електронна пошта"
           id="email"
-          name="email"
           type="email"
           placeholder="example@gmail.com"
           autoComplete="email"
@@ -31,7 +30,6 @@ export default function SignUp() {
         <Input
           label="Пароль"
           id="password"
-          name="password"
           type="password"
           placeholder="••••••••"
           autoComplete="new-password"
@@ -41,7 +39,6 @@ export default function SignUp() {
         <Input
           label="Підтвердіть пароль"
           id="confirmPassword"
-          name="confirmPassword"
           type="password"
           placeholder="••••••••"
           autoComplete="new-password"

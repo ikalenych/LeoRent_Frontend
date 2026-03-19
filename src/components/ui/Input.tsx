@@ -3,7 +3,6 @@ import type { InputHTMLAttributes, ReactNode } from "react";
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
   id: string;
-  name: string;
   type?: string;
   placeholder?: string;
   error?: string;
@@ -14,7 +13,6 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 export function Input({
   label,
   id,
-  name,
   type = "text",
   placeholder = "",
   error,
@@ -40,7 +38,6 @@ export function Input({
         <input
           id={id}
           type={type}
-          name={name}
           disabled={disabled}
           placeholder={placeholder}
           className={`h-13 w-full rounded-2xl border border-slate-200 bg-slate-50 ${
