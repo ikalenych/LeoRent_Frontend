@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-interface AuthInputProps {
+interface InputProps {
   label: string;
   id: string;
   type?: string;
@@ -10,7 +10,7 @@ interface AuthInputProps {
   disabled?: boolean;
 }
 
-export function AuthInput({
+export function Input({
   label,
   id,
   type = "text",
@@ -18,7 +18,7 @@ export function AuthInput({
   error,
   icon,
   disabled = false,
-}: AuthInputProps) {
+}: InputProps) {
   return (
     <div className="mb-5">
       <label

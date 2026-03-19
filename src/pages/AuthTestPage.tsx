@@ -1,9 +1,8 @@
 import { AuthCard } from "../components/auth/AuthCard";
 import { StepBadge } from "../components/auth/StepBadge";
-import { Mail, Lock, ShieldCheck } from "lucide-react";
-import { AuthInput } from "../components/ui/AuthInput";
-import { PrimaryButton } from "../components/ui/PrimaryButton";
-import { SocialButton } from "../components/ui/SocialButton";
+import { Mail, Lock, ShieldCheck, LogIn } from "lucide-react";
+import { Input } from "../components/ui/Input";
+import { Button } from "../components/ui/Button";
 
 export default function AuthTestPage() {
   return (
@@ -18,7 +17,7 @@ export default function AuthTestPage() {
         Введіть свої дані, щоб розпочати пошук ідеального житла.
       </p>
 
-      <AuthInput
+      <Input
         label="Електронна пошта"
         id="email"
         type="email"
@@ -26,7 +25,7 @@ export default function AuthTestPage() {
         icon={<Mail size={20} strokeWidth={1.75} />}
       />
 
-      <AuthInput
+      <Input
         label="Пароль"
         id="password"
         type="password"
@@ -34,7 +33,7 @@ export default function AuthTestPage() {
         icon={<Lock size={20} strokeWidth={1.75} />}
       />
 
-      <AuthInput
+      <Input
         label="Підтвердіть пароль"
         id="confirmPassword"
         type="password"
@@ -43,7 +42,9 @@ export default function AuthTestPage() {
       />
 
       <div className="mb-8">
-        <PrimaryButton>Зареєструватися</PrimaryButton>
+        <Button variant="primary" size="lg" fullWidth>
+          Зареєструватися
+        </Button>
       </div>
 
       <div className="relative mb-8">
@@ -55,7 +56,10 @@ export default function AuthTestPage() {
         </div>
       </div>
 
-      <SocialButton>Продовжити з Google</SocialButton>
+      <Button variant="social" size="lg" fullWidth>
+        <LogIn size={18} strokeWidth={1.75} />
+        Продовжити з Google
+      </Button>
 
       <p className="mt-8 text-center text-[15px] font-display text-slate-500">
         Вже маєте акаунт?{" "}
