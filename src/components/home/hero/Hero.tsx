@@ -1,5 +1,5 @@
 import { HeroSearchBar } from "./HeroSearchBar";
-import heroBg from "../../assets/hero.jpg";
+import heroBg from "../../../assets/hero.jpg";
 
 export function Hero() {
   return (

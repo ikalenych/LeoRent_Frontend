@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Search } from "lucide-react";
-import { Button } from "../ui/Button";
+import { Button } from "../../ui/Button";
 
 const districts = [
   "Всі райони",
