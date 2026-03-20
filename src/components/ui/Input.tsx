@@ -18,6 +18,8 @@ export function Input({
   error,
   icon,
   disabled = false,
+  className = "",
+  ...props
 }: InputProps) {
   return (
     <div className="mb-5">
@@ -44,7 +46,8 @@ export function Input({
             icon ? "pl-12" : "pl-4"
           } pr-4 text-base font-display text-text-title placeholder:text-slate-400 outline-none transition focus:border-primary ${
             disabled ? "cursor-not-allowed opacity-70" : ""
-          } ${error ? "border-red-400" : ""}`}
+          } ${error ? "border-red-400" : ""} ${className}`}
+          {...props}
         />
       </div>
 

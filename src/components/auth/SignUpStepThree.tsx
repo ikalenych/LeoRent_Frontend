@@ -6,13 +6,41 @@ import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
 import { SecurityBlock } from "./SecurityBlock";
 import { PrivacyPolicyModal } from "./PrivacyPolicyModal";
+import type { StepThreeErrors } from "../../pages/SignUp";
 
-export function SignUpStepThree() {
+interface SignUpStepThreeProps {
+  values: {
+    firstName: string;
+    lastName: string;
+    phone: string;
+  };
+  errors: StepThreeErrors;
+  onChange: (fields: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+  }) => void;
+  onBack: () => void;
+  onSubmit: () => void;
+}
+
+export function SignUpStepThree({
+  values,
+  errors,
+  onChange,
+  onBack,
+  onSubmit,
+}: SignUpStepThreeProps) {
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    onSubmit();
+  }
 
   return (
     <>
-      <AuthCard className="max-w-lg">
+      <AuthCard className="max-w-xl">
         <StepBadge step={3} total={3} />
 
         <h1 className="mb-3 font-display text-[26px] font-bold leading-none text-slate-900">
@@ -23,7 +51,7 @@ export function SignUpStepThree() {
           Заповніть ваші контактні дані для створення профілю
         </p>
 
-        <form className="w-full">
+        <form className="w-full" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Input
               label="Ім'я"
@@ -31,6 +59,9 @@ export function SignUpStepThree() {
               type="text"
               placeholder="Данило"
               autoComplete="given-name"
+              value={values.firstName}
+              error={errors.firstName}
+              onChange={(e) => onChange({ firstName: e.target.value })}
               icon={<User size={20} strokeWidth={1.75} />}
             />
 
@@ -40,6 +71,9 @@ export function SignUpStepThree() {
               type="text"
               placeholder="Герчаківський"
               autoComplete="family-name"
+              value={values.lastName}
+              error={errors.lastName}
+              onChange={(e) => onChange({ lastName: e.target.value })}
               icon={<UserRound size={20} strokeWidth={1.75} />}
             />
           </div>
@@ -50,6 +84,9 @@ export function SignUpStepThree() {
             type="tel"
             placeholder="+380 XX XXX XX XX"
             autoComplete="tel"
+            value={values.phone}
+            error={errors.phone}
+            onChange={(e) => onChange({ phone: e.target.value })}
             icon={<Phone size={20} strokeWidth={1.75} />}
           />
 
@@ -67,6 +104,7 @@ export function SignUpStepThree() {
 
         <button
           type="button"
+          onClick={onBack}
           className="mx-auto mt-6 block font-display text-[15px] text-slate-400 transition hover:text-slate-600"
         >
           Повернутися на попередній крок

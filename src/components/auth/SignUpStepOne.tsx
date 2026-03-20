@@ -1,10 +1,36 @@
+import { Mail, Lock, ShieldCheck, LogIn } from "lucide-react";
 import { AuthCard } from "./AuthCard";
 import { StepBadge } from "./StepBadge";
-import { Mail, Lock, ShieldCheck, LogIn } from "lucide-react";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
+import type { StepOneErrors } from "../../pages/SignUp";
 
-export function SignUpStepOne() {
+interface SignUpStepOneProps {
+  values: {
+    email: string;
+    password: string;
+    confirmPassword: string;
+  };
+  errors: StepOneErrors;
+  onChange: (fields: {
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+  }) => void;
+  onNext: () => void;
+}
+
+export function SignUpStepOne({
+  values,
+  errors,
+  onChange,
+  onNext,
+}: SignUpStepOneProps) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    onNext();
+  }
+
   return (
     <AuthCard className="max-w-md">
       <StepBadge step={1} total={3} />
@@ -17,13 +43,16 @@ export function SignUpStepOne() {
         Введіть свої дані, щоб розпочати пошук ідеального житла.
       </p>
 
-      <form className="w-full">
+      <form className="w-full" onSubmit={handleSubmit}>
         <Input
           label="Електронна пошта"
           id="email"
           type="email"
           placeholder="example@gmail.com"
           autoComplete="email"
+          value={values.email}
+          error={errors.email}
+          onChange={(e) => onChange({ email: e.target.value })}
           icon={<Mail size={20} strokeWidth={1.75} />}
         />
 
@@ -33,6 +62,9 @@ export function SignUpStepOne() {
           type="password"
           placeholder="••••••••"
           autoComplete="new-password"
+          value={values.password}
+          error={errors.password}
+          onChange={(e) => onChange({ password: e.target.value })}
           icon={<Lock size={20} strokeWidth={1.75} />}
         />
 
@@ -42,6 +74,9 @@ export function SignUpStepOne() {
           type="password"
           placeholder="••••••••"
           autoComplete="new-password"
+          value={values.confirmPassword}
+          error={errors.confirmPassword}
+          onChange={(e) => onChange({ confirmPassword: e.target.value })}
           icon={<ShieldCheck size={20} strokeWidth={1.75} />}
         />
 
