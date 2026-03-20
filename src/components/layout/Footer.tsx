@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 export default function Footer() {
   return (
     <footer className="bg-surface border-t border-gray-100 font-display">
-      <div className="px-8 py-16 h-16 flex items-center justify-between">
+      <div className="px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
           <span className="font-display font-bold text-text-title text-2xl">
             LeoRent
@@ -12,7 +12,7 @@ export default function Footer() {
             © 2026 LeoRent. All rights reserved.
           </p>
         </div>
-        <div className="flex gap-6 text-sm text-text-description">
+        <div className="flex flex-wrap justify-center gap-6 text-sm text-text-description">
           <NavLink
             to="/terms"
             className="hover:text-text-title transition-colors"
