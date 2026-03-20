@@ -115,18 +115,26 @@ export function HeroSearchBar() {
         </span>
         <div className="flex items-center gap-2 px-4 pb-3 mt-1">
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
             placeholder="від"
             value={priceFrom}
-            onChange={(e) => handlePrice(e.target.value, setPriceFrom)}
+            onChange={(e) =>
+              handlePrice(e.target.value.replace(/\D/g, ""), setPriceFrom)
+            }
             className="w-full text-sm font-medium text-white placeholder:text-white/40 bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
           <span className="text-white/40 text-sm shrink-0">—</span>
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
             placeholder="до"
             value={priceTo}
-            onChange={(e) => handlePrice(e.target.value, setPriceTo)}
+            onChange={(e) =>
+              handlePrice(e.target.value.replace(/\D/g, ""), setPriceTo)
+            }
             className="w-full text-sm font-medium text-white placeholder:text-white/40 bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
         </div>
