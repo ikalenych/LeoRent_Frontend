@@ -57,7 +57,7 @@ export function SignUpStepThree({
               label="Ім'я"
               id="firstName"
               type="text"
-              placeholder="Данило"
+              placeholder="Введіть ім’я"
               autoComplete="given-name"
               value={values.firstName}
               error={errors.firstName}
@@ -69,7 +69,7 @@ export function SignUpStepThree({
               label="Прізвище"
               id="lastName"
               type="text"
-              placeholder="Герчаківський"
+              placeholder="Введіть прізвище"
               autoComplete="family-name"
               value={values.lastName}
               error={errors.lastName}
