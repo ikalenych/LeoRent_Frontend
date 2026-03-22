@@ -5,6 +5,8 @@ import Home from "./pages/Home";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 
+import CreateListing from "./pages/CreateListing";
+
 export default function App() {
   return (
     <Routes>
@@ -12,6 +14,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/listing" element={<CreateListing />} />
       </Route>
     </Routes>
   );
