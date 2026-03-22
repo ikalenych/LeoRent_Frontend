@@ -8,6 +8,7 @@ import type { UserRole } from "../../pages/SignUp";
 interface SignUpStepTwoProps {
   selectedRole: UserRole;
   error?: string;
+  isNextDisabled?: boolean;
   onSelectRole: (role: UserRole) => void;
   onNext: () => void;
   onBack: () => void;
@@ -16,6 +17,7 @@ interface SignUpStepTwoProps {
 export function SignUpStepTwo({
   selectedRole,
   error,
+  isNextDisabled = false,
   onSelectRole,
   onNext,
   onBack,
@@ -74,7 +76,13 @@ export function SignUpStepTwo({
           ) : null}
 
           <div className="mx-auto flex max-w-105 flex-col items-center">
-            <Button type="submit" variant="primary" size="lg" fullWidth>
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              fullWidth
+              disabled={isNextDisabled}
+            >
               Продовжити
             </Button>
 
