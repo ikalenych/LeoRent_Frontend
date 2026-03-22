@@ -72,6 +72,7 @@ export function BaseInput({
   dark = false,
   value,
   onChange,
+  error,
 }: {
   id?: string;
   placeholder?: string;
@@ -79,6 +80,7 @@ export function BaseInput({
   dark?: boolean;
   value?: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  error?: string;
 }) {
   return (
     <input
@@ -89,8 +91,12 @@ export function BaseInput({
       placeholder={placeholder}
       className={`h-14 w-full rounded-2xl border px-4 text-[16px] font-display outline-none transition placeholder:text-[14px] sm:placeholder:text-[16px] ${
         dark
-          ? "border-white/10 bg-[#0b1220] text-surface placeholder:text-white/30 hover:border-white/20 focus:border-primary focus:ring-4 focus:ring-primary/10"
-          : "border-black/10 bg-surface text-text-title placeholder:text-text-description/60 hover:border-black/20 focus:border-primary focus:ring-4 focus:ring-primary/10"
+          ? error
+            ? "border-red-400 bg-[#0b1220] text-surface placeholder:text-white/30 focus:ring-4 focus:ring-red-400/10"
+            : "border-white/10 bg-[#0b1220] text-surface placeholder:text-white/30 hover:border-white/20 focus:border-primary focus:ring-4 focus:ring-primary/10"
+          : error
+            ? "border-red-400 bg-surface text-text-title placeholder:text-text-description/60 focus:ring-4 focus:ring-red-400/10"
+            : "border-black/10 bg-surface text-text-title placeholder:text-text-description/60 hover:border-black/20 focus:border-primary focus:ring-4 focus:ring-primary/10"
       }`}
     />
   );
@@ -102,12 +108,14 @@ export function CustomSelect({
   options,
   placeholder,
   dark = false,
+  error,
 }: {
   value: string;
   onChange: (value: string) => void;
   options: string[];
   placeholder: string;
   dark?: boolean;
+  error?: string;
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -130,16 +138,26 @@ export function CustomSelect({
         onClick={() => setOpen((prev) => !prev)}
         className={`flex h-14 w-full items-center justify-between rounded-2xl border px-4 text-left text-[16px] outline-none transition ${
           dark
-            ? "border-white/10 bg-[#0b1220] text-surface hover:border-white/20"
-            : "border-black/10 bg-surface text-text-title hover:border-black/20"
+            ? error
+              ? "border-red-400 bg-[#0b1220] text-surface"
+              : "border-white/10 bg-[#0b1220] text-surface hover:border-white/20"
+            : error
+              ? "border-red-400 bg-surface text-text-title"
+              : "border-black/10 bg-surface text-text-title hover:border-black/20"
         } ${!value ? (dark ? "text-white/30" : "text-text-description/60") : ""} ${
-          open ? "border-primary ring-4 ring-primary/10" : ""
+          open
+            ? error
+              ? "ring-4 ring-red-400/10"
+              : "border-primary ring-4 ring-primary/10"
+            : ""
         }`}
       >
         <span>{value || placeholder}</span>
         <ChevronDown
           size={18}
-          className={`transition ${open ? "rotate-180" : ""} ${dark ? "text-white/50" : "text-text-description/60"}`}
+          className={`transition ${open ? "rotate-180" : ""} ${
+            dark ? "text-white/50" : "text-text-description/60"
+          }`}
         />
       </button>
 
@@ -189,10 +207,12 @@ export function ChipButton({
   label,
   active,
   onClick,
+  error = false,
 }: {
   label: string;
   active: boolean;
   onClick: () => void;
+  error?: boolean;
 }) {
   return (
     <button
@@ -201,7 +221,9 @@ export function ChipButton({
       className={`inline-flex h-12 items-center justify-center rounded-2xl border px-5 text-[15px] font-medium transition ${
         active
           ? "border-primary bg-primary/10 text-primary"
-          : "border-black/10 bg-surface text-text-title hover:border-black/20"
+          : error
+            ? "border-red-400 bg-surface text-text-title"
+            : "border-black/10 bg-surface text-text-title hover:border-black/20"
       }`}
     >
       {label}
@@ -214,11 +236,13 @@ export function ToggleButton({
   active,
   dark = false,
   onClick,
+  error = false,
 }: {
   label: string;
   active: boolean;
   dark?: boolean;
   onClick: () => void;
+  error?: boolean;
 }) {
   return (
     <button
@@ -228,10 +252,14 @@ export function ToggleButton({
         dark
           ? active
             ? "border-text-title bg-text-title text-surface"
-            : "border-black/10 bg-surface text-text-title hover:border-black/20"
+            : error
+              ? "border-red-400 bg-surface text-text-title"
+              : "border-black/10 bg-surface text-text-title hover:border-black/20"
           : active
             ? "border-primary bg-primary/10 text-primary"
-            : "border-black/10 bg-surface text-text-title hover:border-black/20"
+            : error
+              ? "border-red-400 bg-surface text-text-title"
+              : "border-black/10 bg-surface text-text-title hover:border-black/20"
       }`}
     >
       {label}
