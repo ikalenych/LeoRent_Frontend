@@ -1,11 +1,86 @@
+import { useState } from "react";
 import { Mail, Lock, LogIn } from "lucide-react";
 import { AuthCard } from "../components/auth/AuthCard";
 import { Input } from "../components/ui/Input";
 import { Button } from "../components/ui/Button";
 
+interface LoginErrors {
+  email?: string;
+  password?: string;
+}
+
 export default function Login() {
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const [errors, setErrors] = useState<LoginErrors>({});
+  const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  function updateFormData(fields: Partial<typeof formData>) {
+    setFormData((prev) => ({ ...prev, ...fields }));
+  }
+
+  function validateForm() {
+    const nextErrors: LoginErrors = {};
+
+    if (!formData.email.trim()) {
+      nextErrors.email = "Введіть електронну пошту";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      nextErrors.email = "Некоректний формат електронної пошти";
+    }
+
+    if (!formData.password.trim()) {
+      nextErrors.password = "Введіть пароль";
+    }
+
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    if (!validateForm()) return;
+
+    setSubmitError("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/users/login/v1", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email.trim().toLowerCase(),
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const message =
+          typeof data?.detail === "string"
+            ? data.detail
+            : Array.isArray(data?.detail)
+              ? data.detail.map((item: { msg?: string }) => item.msg).join(", ")
+              : data?.message || "Не вдалося увійти в акаунт";
+
+        throw new Error(message);
+      }
+
+      console.log("Login success:", data);
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : "Сталася помилка при вході",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -21,6 +96,13 @@ export default function Login() {
           type="email"
           placeholder="example@gmail.com"
           autoComplete="email"
+          value={formData.email}
+          error={errors.email}
+          onChange={(e) => {
+            updateFormData({ email: e.target.value });
+            setErrors((prev) => ({ ...prev, email: undefined }));
+            setSubmitError("");
+          }}
           icon={<Mail size={20} strokeWidth={1.75} />}
         />
 
@@ -30,12 +112,29 @@ export default function Login() {
           type="password"
           placeholder="••••••••"
           autoComplete="current-password"
+          value={formData.password}
+          error={errors.password}
+          onChange={(e) => {
+            updateFormData({ password: e.target.value });
+            setErrors((prev) => ({ ...prev, password: undefined }));
+            setSubmitError("");
+          }}
           icon={<Lock size={20} strokeWidth={1.75} />}
         />
 
+        {submitError ? (
+          <p className="mb-4 text-sm text-red-500">{submitError}</p>
+        ) : null}
+
         <div className="mb-8">
-          <Button type="submit" variant="primary" size="lg" fullWidth>
-            Увійти
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            fullWidth
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Вхід..." : "Увійти"}
           </Button>
         </div>
 
