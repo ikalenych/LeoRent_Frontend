@@ -15,6 +15,8 @@ interface SignUpStepThreeProps {
     phone: string;
   };
   errors: StepThreeErrors;
+  submitError?: string;
+  isSubmitting?: boolean;
   onChange: (fields: {
     firstName?: string;
     lastName?: string;
@@ -27,6 +29,8 @@ interface SignUpStepThreeProps {
 export function SignUpStepThree({
   values,
   errors,
+  submitError,
+  isSubmitting = false,
   onChange,
   onBack,
   onSubmit,
@@ -90,11 +94,23 @@ export function SignUpStepThree({
             icon={<Phone size={20} strokeWidth={1.75} />}
           />
 
+          {submitError ? (
+            <p className="mb-4 text-sm text-red-500">{submitError}</p>
+          ) : null}
+
           <div className="mb-6">
-            <Button type="submit" variant="primary" size="lg" fullWidth>
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              fullWidth
+              disabled={isSubmitting}
+            >
               <span className="flex w-full items-center justify-center gap-2">
-                Завершити реєстрацію
-                <ArrowRight size={18} strokeWidth={2} />
+                {isSubmitting ? "Створення акаунта..." : "Завершити реєстрацію"}
+                {!isSubmitting ? (
+                  <ArrowRight size={18} strokeWidth={2} />
+                ) : null}
               </span>
             </Button>
           </div>
@@ -106,6 +122,7 @@ export function SignUpStepThree({
           type="button"
           onClick={onBack}
           className="mx-auto mt-6 block font-display text-[15px] text-slate-400 transition hover:text-slate-600"
+          disabled={isSubmitting}
         >
           Повернутися на попередній крок
         </button>

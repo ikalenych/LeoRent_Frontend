@@ -86,6 +86,33 @@ function getInitialPersistedState() {
   }
 }
 
+function normalizeUsername(firstName: string, lastName: string) {
+  const fullName = `${firstName} ${lastName}`.replace(/\s+/g, " ").trim();
+
+  if (!fullName) return null;
+  if (/\d/.test(fullName)) return null;
+
+  return fullName
+    .toLowerCase()
+    .split(" ")
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+function mapUserType(role: UserRole): "agent" | "owner" | "default" {
+  switch (role) {
+    case "realtor":
+      return "agent";
+    case "owner":
+      return "owner";
+    case "tenant":
+      return "default";
+    default:
+      return "default";
+  }
+}
+
 export default function SignUp() {
   const [persistedState] = useState(() => getInitialPersistedState());
 
@@ -99,6 +126,8 @@ export default function SignUp() {
   const [stepOneErrors, setStepOneErrors] = useState<StepOneErrors>({});
   const [stepThreeErrors, setStepThreeErrors] = useState<StepThreeErrors>({});
   const [stepTwoError, setStepTwoError] = useState("");
+  const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const persistedData: PersistedSignUpState = {
@@ -122,6 +151,12 @@ export default function SignUp() {
     formData.phone,
   ]);
 
+  useEffect(() => {
+    return () => {
+      localStorage.removeItem(SIGN_UP_STORAGE_KEY);
+    };
+  }, []);
+
   function updateFormData(fields: Partial<SignUpFormData>) {
     setFormData((prev) => ({ ...prev, ...fields }));
   }
@@ -139,10 +174,16 @@ export default function SignUp() {
 
     if (!formData.email.trim()) {
       errors.email = "Введіть електронну пошту";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      errors.email = "Некоректний формат електронної пошти";
     }
 
     if (!formData.password.trim()) {
       errors.password = "Введіть пароль";
+    } else if (formData.password.trim().length < 8) {
+      errors.password = "Пароль має містити щонайменше 8 символів";
+    } else if (formData.password.trim().length > 16) {
+      errors.password = "Пароль має містити не більше 16 символів";
     }
 
     if (!formData.confirmPassword.trim()) {
@@ -176,10 +217,14 @@ export default function SignUp() {
 
     if (!formData.firstName.trim()) {
       errors.firstName = "Введіть ім'я";
+    } else if (/\d/.test(formData.firstName)) {
+      errors.firstName = "Ім'я не повинно містити цифри";
     }
 
     if (!formData.lastName.trim()) {
       errors.lastName = "Введіть прізвище";
+    } else if (/\d/.test(formData.lastName)) {
+      errors.lastName = "Прізвище не повинно містити цифри";
     }
 
     if (!formData.phone.trim()) {
@@ -200,18 +245,59 @@ export default function SignUp() {
     nextStep();
   }
 
-  function handleFinalSubmit() {
+  async function handleFinalSubmit() {
     if (!validateStepThree()) return;
 
-    console.log("Registration completed:", {
-      email: formData.email,
-      role: formData.role,
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      phone: formData.phone,
-    });
+    const normalizedUsername = normalizeUsername(
+      formData.firstName,
+      formData.lastName,
+    );
 
-    localStorage.removeItem(SIGN_UP_STORAGE_KEY);
+    if (!normalizedUsername) {
+      setStepThreeErrors((prev) => ({
+        ...prev,
+        firstName: prev.firstName || "Ім'я та прізвище мають бути без цифр",
+        lastName: prev.lastName || "Ім'я та прізвище мають бути без цифр",
+      }));
+      return;
+    }
+
+    setSubmitError("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/users/signup/v1", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email.trim().toLowerCase(),
+          username: normalizedUsername,
+          phone: formData.phone.trim(),
+          password: formData.password,
+          user_type: mapUserType(formData.role),
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(data?.message || "Не вдалося створити акаунт");
+      }
+
+      localStorage.removeItem(SIGN_UP_STORAGE_KEY);
+
+      console.log("Registration completed:", data);
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Сталася помилка при реєстрації",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   if (currentStep === 1) {
@@ -261,6 +347,8 @@ export default function SignUp() {
         phone: formData.phone,
       }}
       errors={stepThreeErrors}
+      submitError={submitError}
+      isSubmitting={isSubmitting}
       onChange={(fields) => {
         updateFormData(fields);
         setStepThreeErrors((prev) => ({
@@ -270,6 +358,7 @@ export default function SignUp() {
             {},
           ),
         }));
+        setSubmitError("");
       }}
       onBack={previousStep}
       onSubmit={handleFinalSubmit}
