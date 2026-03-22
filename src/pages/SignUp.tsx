@@ -283,7 +283,14 @@ export default function SignUp() {
       const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(data?.message || "Не вдалося створити акаунт");
+        const message =
+          typeof data?.detail === "string"
+            ? data.detail
+            : Array.isArray(data?.detail)
+              ? data.detail.map((item: { msg?: string }) => item.msg).join(", ")
+              : data?.message || "Не вдалося створити акаунт";
+
+        throw new Error(message);
       }
 
       localStorage.removeItem(SIGN_UP_STORAGE_KEY);
@@ -309,6 +316,11 @@ export default function SignUp() {
           confirmPassword: formData.confirmPassword,
         }}
         errors={stepOneErrors}
+        isNextDisabled={
+          !formData.email.trim() ||
+          !formData.password.trim() ||
+          !formData.confirmPassword.trim()
+        }
         onChange={(fields) => {
           updateFormData(fields);
           setStepOneErrors((prev) => ({
@@ -329,6 +341,7 @@ export default function SignUp() {
       <SignUpStepTwo
         selectedRole={formData.role}
         error={stepTwoError}
+        isNextDisabled={!formData.role}
         onSelectRole={(role) => {
           updateFormData({ role });
           setStepTwoError("");

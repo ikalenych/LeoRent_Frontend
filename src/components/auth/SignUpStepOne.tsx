@@ -12,6 +12,7 @@ interface SignUpStepOneProps {
     confirmPassword: string;
   };
   errors: StepOneErrors;
+  isNextDisabled?: boolean;
   onChange: (fields: {
     email?: string;
     password?: string;
@@ -23,6 +24,7 @@ interface SignUpStepOneProps {
 export function SignUpStepOne({
   values,
   errors,
+  isNextDisabled = false,
   onChange,
   onNext,
 }: SignUpStepOneProps) {
@@ -64,6 +66,7 @@ export function SignUpStepOne({
           autoComplete="new-password"
           value={values.password}
           error={errors.password}
+          maxLength={16}
           onChange={(e) => onChange({ password: e.target.value })}
           icon={<Lock size={20} strokeWidth={1.75} />}
         />
@@ -76,12 +79,19 @@ export function SignUpStepOne({
           autoComplete="new-password"
           value={values.confirmPassword}
           error={errors.confirmPassword}
+          maxLength={16}
           onChange={(e) => onChange({ confirmPassword: e.target.value })}
           icon={<ShieldCheck size={20} strokeWidth={1.75} />}
         />
 
         <div className="mb-8">
-          <Button type="submit" variant="primary" size="lg" fullWidth>
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            fullWidth
+            disabled={isNextDisabled}
+          >
             Зареєструватися
           </Button>
         </div>
