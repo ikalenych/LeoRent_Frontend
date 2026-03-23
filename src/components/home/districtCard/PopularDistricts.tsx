@@ -48,7 +48,7 @@ export const PopularDistricts: React.FC = () => {
   };
 
   return (
-    <section className="py-10 w-full">
+    <section className="py-10 w-full bg-page-2">
       <div className="px-4 sm:px-6 lg:px-10 flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Популярні райони</h2>
 
