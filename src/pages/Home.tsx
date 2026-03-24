@@ -1,7 +1,14 @@
+import { Hero } from "../components/home/hero/Hero";
+import { Features } from "../components/home/features/Features";
+import { PopularDistricts } from "../components/home/districtCard/PopularDistricts";
+import { ApartmentsSection } from "../components/home/apartament/ApartmentsSection";
 export default function Home() {
   return (
-    <div className="max-w-7xl  px-6 py-12">
-      <h1 className="text-text-title text-3xl font-bold"></h1>
-    </div>
+    <main>
+      <Hero />
+      <Features />
+      <ApartmentsSection />
+      <PopularDistricts />
+    </main>
   );
 }
