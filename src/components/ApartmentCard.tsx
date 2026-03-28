@@ -1,5 +1,3 @@
-// components/ApartmentCard.tsx
-
 import { Heart, MapPin, BedDouble, LayoutGrid, Layers } from "lucide-react";
 import type { ApartmentCardProps } from "../types/apartment";
 
@@ -22,12 +20,12 @@ export default function ApartmentCard({
   const formattedCost = cost.toLocaleString("uk-UA");
 
   return (
-    <div className="bg-surface rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 w-[390px] h-[407px] font-display cursor-pointer shrink-0">
-      <div className="relative w-full h-[256px] overflow-hidden">
+    <div className="group bg-surface rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 w-[300px] h-[340px] min-[480px]:w-[390px] min-[480px]:h-[407px] font-display cursor-pointer shrink-0">
+      <div className="relative w-full h-[190px] min-[480px]:h-[256px] overflow-hidden">
         <img
           src={photos[0]?.url ?? "/placeholder.jpg"}
           alt={title}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
 
         <span
@@ -58,9 +56,9 @@ export default function ApartmentCard({
         </button>
       </div>
 
-      <div className="h-[149px] px-4 py-3 flex flex-col justify-between">
+      <div className="h-[150px] min-[480px]:h-[149px] px-4 py-3 flex flex-col justify-between">
         <div className="flex flex-col gap-1.5">
-          <h3 className="text-text-title font-semibold text-base leading-snug line-clamp-1">
+          <h3 className="text-text-title group-hover:text-emerald-500 font-semibold text-base leading-snug line-clamp-1 transition-colors duration-200">
             {title}
           </h3>
 

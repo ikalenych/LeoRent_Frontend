@@ -88,7 +88,7 @@ export function ApartmentsSection() {
   return (
     <section className="bg-page py-10 px-6">
       <div className="px-10 sm:px-6 lg:px-3">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
           <div>
             <h2 className="text-text-title font-display font-semibold text-2xl">
               Нові пропозиції
@@ -99,7 +99,7 @@ export function ApartmentsSection() {
           </div>
           <a
             href="/apartments"
-            className="text-primary hover:text-primary-hover text-sm font-medium transition-colors"
+            className="text-primary hover:text-primary-hover text-sm font-medium transition-colors sm:self-start"
           >
             Всі оголошення →
           </a>
