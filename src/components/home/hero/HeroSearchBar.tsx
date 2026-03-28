@@ -61,8 +61,14 @@ function SelectDropdown({
         </svg>
       </button>
 
-      {open && (
-        <div className="absolute top-full left-0 mt-2 w-52 bg-white/25 backdrop-blur-md border border-white/30 rounded-xl shadow-2xl py-1.5 z-9999">
+      <div
+        className={`absolute top-full left-0 mt-2 w-52 bg-white md:bg-white/25 md:backdrop-blur-md border border-gray-200 md:border-white/30 rounded-xl shadow-2xl z-[9999] overflow-hidden transition-all duration-300 ease-out ${
+          open
+            ? "opacity-100 max-h-64 translate-y-0 pointer-events-auto"
+            : "opacity-0 max-h-0 -translate-y-2 pointer-events-none"
+        }`}
+      >
+        <div className="py-1.5">
           {options.map((opt) => (
             <button
               key={opt}
@@ -71,15 +77,17 @@ function SelectDropdown({
                 onChange(opt);
                 setOpen(false);
               }}
-              className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-white/20 ${
-                value === opt ? "text-white font-semibold" : "text-white/80"
+              className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-gray-50 md:hover:bg-white/20 ${
+                value === opt
+                  ? "text-emerald-500 md:text-white font-semibold"
+                  : "text-gray-700 md:text-white/80"
               }`}
             >
               {opt}
             </button>
           ))}
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -109,7 +117,7 @@ export function HeroSearchBar() {
         />
       </div>
 
-      <div className={`${fieldClass}`}>
+      <div className={fieldClass}>
         <span className="text-[10px] font-semibold uppercase tracking-widest text-white/60 px-4 pt-3">
           Ціна від/до
         </span>

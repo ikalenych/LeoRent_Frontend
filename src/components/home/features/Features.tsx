@@ -25,18 +25,20 @@ export function Features() {
         {features.map(({ icon: Icon, title, description }) => (
           <div
             key={title}
-            className="flex items-center justify-center gap-5 py-6 md:py-0 md:px-14"
+            className="flex items-center justify-center py-6 md:py-0 md:px-14"
           >
-            <div className="shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Icon className="w-6 h-6 text-primary" strokeWidth={1.75} />
-            </div>
-            <div>
-              <p className="font-display font-semibold text-text-title text-base">
-                {title}
-              </p>
-              <p className="font-display text-text-description text-sm mt-1">
-                {description}
-              </p>
+            <div className="group flex items-center gap-5 px-6 py-4 rounded-2xl transition-colors duration-200 hover:bg-emerald-50 cursor-default">
+              <div className="shrink-0 w-12 h-12 rounded-xl bg-primary/10 group-hover:bg-emerald-100 group-hover:scale-110 flex items-center justify-center transition-all duration-200">
+                <Icon className="w-6 h-6 text-primary" strokeWidth={1.75} />
+              </div>
+              <div>
+                <p className="font-display font-semibold text-text-title text-base">
+                  {title}
+                </p>
+                <p className="font-display text-text-description text-sm mt-1">
+                  {description}
+                </p>
+              </div>
             </div>
           </div>
         ))}
