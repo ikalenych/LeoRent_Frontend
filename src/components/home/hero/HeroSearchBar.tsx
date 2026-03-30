@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import { Button } from "../../ui/Button";
 
@@ -11,7 +12,7 @@ const districts = [
   "Залізничний",
 ];
 const rooms = ["Будь-яка", "1", "2", "3", "4+"];
-const durations = ["Тривала", "Подобова"];
+const durations = ["Тривала"];
 
 interface SelectDropdownProps {
   label: string;
@@ -93,6 +94,7 @@ function SelectDropdown({
 }
 
 export function HeroSearchBar() {
+  const navigate = useNavigate();
   const [district, setDistrict] = useState("Всі райони");
   const [priceFrom, setPriceFrom] = useState("");
   const [priceTo, setPriceTo] = useState("");
@@ -101,6 +103,30 @@ export function HeroSearchBar() {
 
   const handlePrice = (val: string, set: (v: string) => void) => {
     if (val.length <= 6) set(val);
+  };
+
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+
+    if (district !== "Всі райони") {
+      params.set("district", district);
+    }
+
+    if (priceFrom) {
+      params.set("priceMin", priceFrom);
+    }
+
+    if (priceTo) {
+      params.set("priceMax", priceTo);
+    }
+
+    if (room !== "Будь-яка") {
+      const roomNum = room === "4+" ? "4" : room;
+      params.set("rooms", roomNum);
+    }
+
+    const queryString = params.toString();
+    navigate(`/listings${queryString ? "?" + queryString : ""}`);
   };
 
   const fieldClass =
@@ -167,7 +193,11 @@ export function HeroSearchBar() {
       </div>
 
       <div className="p-2 flex items-center">
-        <Button size="lg" className="w-full md:w-auto rounded-xl gap-2 px-10">
+        <Button
+          size="lg"
+          className="w-full md:w-auto rounded-xl gap-2 px-10"
+          onClick={handleSearch}
+        >
           <Search size={18} />
           <span className="hidden sm:inline">Шукати</span>
         </Button>

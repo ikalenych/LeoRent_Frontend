@@ -6,11 +6,13 @@ import type { ApartmentCardProps } from "../../types/apartment";
 interface ListingsGridProps {
   apartments: Omit<ApartmentCardProps, "isLiked" | "onLike">[];
   perPage?: number;
+  isMultiColumn?: boolean;
 }
 
 export default function ListingsGrid({
   apartments,
   perPage = 6,
+  isMultiColumn = false,
 }: ListingsGridProps) {
   const [page, setPage] = useState(1);
   const [liked, setLiked] = useState<Set<string>>(new Set());
@@ -33,7 +35,11 @@ export default function ListingsGrid({
           Оголошень не знайдено. Спробуйте змінити фільтри.
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5 w-full">
+        <div
+          className={`grid gap-5 ${
+            isMultiColumn ? "grid-cols-2 2xl:grid-cols-3" : "grid-cols-1"
+          }`}
+        >
           {paginated.map((apt) => (
             <div key={apt.id} className="flex justify-center">
               <ApartmentCard
