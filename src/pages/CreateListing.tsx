@@ -86,6 +86,10 @@ export default function CreateListing() {
     });
   }
 
+  function handlePublishListing() {
+    console.log("Publish listing");
+  }
+
   return (
     <div className="min-h-screen bg-page">
       <CreateListingProgress currentStep={currentStep} />
@@ -107,7 +111,10 @@ export default function CreateListing() {
         ) : null}
 
         {currentStep === 3 ? (
-          <CreateListingStepThree onBack={goToPreviousStep} />
+          <CreateListingStepThree
+            onBack={goToPreviousStep}
+            onPublish={handlePublishListing}
+          />
         ) : null}
       </main>
     </div>
