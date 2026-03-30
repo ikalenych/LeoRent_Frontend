@@ -24,7 +24,7 @@ import {
 } from "./listingStepOneValidation";
 
 type CreateListingStepOneProps = {
-  onNext?: () => void;
+  onNext: () => void;
 };
 
 export function CreateListingStepOne({ onNext }: CreateListingStepOneProps) {
