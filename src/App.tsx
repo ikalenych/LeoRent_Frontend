@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import Layout from "./components/layout/Layout";
 import Home from "./pages/Home";
+import Listings from "./pages/Listings";
 
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
         <Route path="/listing" element={<CreateListing />} />
+        <Route path="/listings" element={<Listings />} />
       </Route>
     </Routes>
   );
