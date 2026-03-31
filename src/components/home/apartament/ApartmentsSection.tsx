@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import ApartmentCard from "../../ApartmentCard";
 import type { ApartmentCardProps } from "../../../types/apartment";
 
@@ -97,12 +98,12 @@ export function ApartmentsSection() {
               Найкращі квартири, що з'явилися сьогодні
             </p>
           </div>
-          <a
-            href="/apartments"
+          <Link
+            to="/listings"
             className="text-primary hover:text-primary-hover text-sm font-medium transition-colors sm:self-start"
           >
             Всі оголошення →
-          </a>
+          </Link>
         </div>
 
         <div className="flex flex-wrap justify-center gap-4 sm:gap-5 lg:gap-6 2xl:hidden">
