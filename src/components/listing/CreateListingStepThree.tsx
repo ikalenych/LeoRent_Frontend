@@ -3,6 +3,8 @@ import {
   ArrowLeft,
   ArrowRight,
   Camera,
+  ChevronLeft,
+  ChevronRight,
   ImagePlus,
   Info,
   Star,
@@ -10,15 +12,18 @@ import {
 } from "lucide-react";
 import { Button } from "../ui/Button";
 
-type CreateListingStepThreeProps = {
-  onBack?: () => void;
-  onPublish?: () => void;
-};
-
-type PhotoItem = {
+export type PhotoItem = {
   id: string;
   file: File;
   preview: string;
+};
+
+type CreateListingStepThreeProps = {
+  onBack?: () => void;
+  onPublish?: () => void;
+  isSubmitting?: boolean;
+  photos: PhotoItem[];
+  onPhotosChange: (photos: PhotoItem[]) => void;
 };
 
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -29,8 +34,10 @@ const MAX_PHOTOS = 5;
 export function CreateListingStepThree({
   onBack,
   onPublish,
+  isSubmitting = false,
+  photos,
+  onPhotosChange,
 }: CreateListingStepThreeProps) {
-  const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -41,12 +48,6 @@ export function CreateListingStepThree({
   const isMouseDraggingRef = useRef(false);
   const dragStartXRef = useRef(0);
   const dragStartScrollLeftRef = useRef(0);
-
-  useEffect(() => {
-    return () => {
-      photos.forEach((photo) => URL.revokeObjectURL(photo.preview));
-    };
-  }, [photos]);
 
   useEffect(() => {
     function handleWindowMouseUp() {
@@ -61,8 +62,23 @@ export function CreateListingStepThree({
     };
   }, []);
 
+  useEffect(() => {
+    return () => {
+      photos.forEach((photo) => URL.revokeObjectURL(photo.preview));
+    };
+  }, []);
+
   function openFileDialog() {
     inputRef.current?.click();
+  }
+
+  function scrollSliderBy(offset: number) {
+    if (!sliderRef.current) return;
+
+    sliderRef.current.scrollBy({
+      left: offset,
+      behavior: "smooth",
+    });
   }
 
   function validateFiles(files: File[]) {
@@ -97,27 +113,24 @@ export function CreateListingStepThree({
     if (!fileList) return;
 
     const validFiles = validateFiles(Array.from(fileList));
+    const availableSlots = MAX_PHOTOS - photos.length;
 
-    setPhotos((prev) => {
-      const availableSlots = MAX_PHOTOS - prev.length;
+    if (availableSlots <= 0) {
+      setErrorMessage(`Можна завантажити максимум ${MAX_PHOTOS} фото.`);
+      return;
+    }
 
-      if (availableSlots <= 0) {
-        setErrorMessage(`Можна завантажити максимум ${MAX_PHOTOS} фото.`);
-        return prev;
-      }
+    const mappedFiles = validFiles.slice(0, availableSlots).map((file) => ({
+      id: `${file.name}-${file.lastModified}-${Math.random()}`,
+      file,
+      preview: URL.createObjectURL(file),
+    }));
 
-      const mappedFiles = validFiles.slice(0, availableSlots).map((file) => ({
-        id: `${file.name}-${file.lastModified}-${Math.random()}`,
-        file,
-        preview: URL.createObjectURL(file),
-      }));
+    if (validFiles.length > availableSlots) {
+      setErrorMessage(`Можна завантажити максимум ${MAX_PHOTOS} фото.`);
+    }
 
-      if (validFiles.length > availableSlots) {
-        setErrorMessage(`Можна завантажити максимум ${MAX_PHOTOS} фото.`);
-      }
-
-      return [...prev, ...mappedFiles];
-    });
+    onPhotosChange([...photos, ...mappedFiles]);
   }
 
   function handleInputChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -145,15 +158,13 @@ export function CreateListingStepThree({
   }
 
   function handleRemovePhoto(id: string) {
-    setPhotos((prev) => {
-      const photoToRemove = prev.find((photo) => photo.id === id);
+    const photoToRemove = photos.find((photo) => photo.id === id);
 
-      if (photoToRemove) {
-        URL.revokeObjectURL(photoToRemove.preview);
-      }
+    if (photoToRemove) {
+      URL.revokeObjectURL(photoToRemove.preview);
+    }
 
-      return prev.filter((photo) => photo.id !== id);
-    });
+    onPhotosChange(photos.filter((photo) => photo.id !== id));
   }
 
   function handleSliderMouseDown(event: React.MouseEvent<HTMLDivElement>) {
@@ -251,74 +262,96 @@ export function CreateListingStepThree({
         ) : null}
 
         {(photos.length > 0 || photos.length < MAX_PHOTOS) && (
-          <div
-            ref={sliderRef}
-            className="no-scrollbar mt-8 overflow-x-auto pb-2 select-none"
-            onMouseDown={handleSliderMouseDown}
-            onMouseMove={handleSliderMouseMove}
-            onMouseUp={handleSliderMouseUp}
-            onMouseLeave={handleSliderMouseLeave}
-            style={{
-              cursor: isMouseDownRef.current ? "grabbing" : "grab",
-            }}
-          >
-            <div className="flex w-max min-w-full gap-4">
-              {photos.map((photo, index) => (
-                <div
-                  key={photo.id}
-                  onClickCapture={handleCardClickCapture}
-                  className={`shrink-0 rounded-[22px] ${
-                    index === 0 ? "bg-primary p-0.5" : ""
-                  }`}
-                >
-                  <div className="group relative h-48 w-48.5 overflow-hidden rounded-[20px] bg-white shadow-[0_8px_24px_rgba(15,23,41,0.08)]">
-                    {index === 0 && (
-                      <div className="absolute left-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-[12px] font-semibold text-white shadow">
-                        <Star
-                          size={12}
-                          fill="currentColor"
-                          strokeWidth={2}
-                          className="shrink-0"
-                        />
-                        <span>Головне фото</span>
-                      </div>
-                    )}
+          <div className="mt-8">
+            <div className="mb-3 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => scrollSliderBy(-220)}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white text-text-title transition hover:border-primary/40 hover:text-primary"
+                aria-label="Прокрутити фото вліво"
+              >
+                <ChevronLeft size={18} strokeWidth={2.2} />
+              </button>
 
-                    <button
-                      type="button"
-                      aria-label="Видалити фото"
-                      onMouseDown={(event) => event.stopPropagation()}
-                      onClick={() => handleRemovePhoto(photo.id)}
-                      className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-text-title shadow-[0_6px_16px_rgba(15,23,41,0.16)] transition hover:bg-white"
-                    >
-                      <X size={16} strokeWidth={2.2} />
-                    </button>
+              <button
+                type="button"
+                onClick={() => scrollSliderBy(220)}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white text-text-title transition hover:border-primary/40 hover:text-primary"
+                aria-label="Прокрутити фото вправо"
+              >
+                <ChevronRight size={18} strokeWidth={2.2} />
+              </button>
+            </div>
 
-                    <img
-                      src={photo.preview}
-                      alt={photo.file.name}
-                      draggable={false}
-                      className="pointer-events-none h-full w-full object-cover"
-                    />
+            <div
+              ref={sliderRef}
+              className="no-scrollbar overflow-x-auto pb-2 select-none"
+              onMouseDown={handleSliderMouseDown}
+              onMouseMove={handleSliderMouseMove}
+              onMouseUp={handleSliderMouseUp}
+              onMouseLeave={handleSliderMouseLeave}
+              style={{
+                cursor: isMouseDownRef.current ? "grabbing" : "grab",
+              }}
+            >
+              <div className="flex w-max min-w-full gap-4">
+                {photos.map((photo, index) => (
+                  <div
+                    key={photo.id}
+                    onClickCapture={handleCardClickCapture}
+                    className={`shrink-0 rounded-[22px] ${
+                      index === 0 ? "bg-primary p-0.5" : ""
+                    }`}
+                  >
+                    <div className="group relative h-48 w-48.5 overflow-hidden rounded-[20px] bg-white shadow-[0_8px_24px_rgba(15,23,41,0.08)]">
+                      {index === 0 && (
+                        <div className="absolute left-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-[12px] font-semibold text-white shadow">
+                          <Star
+                            size={12}
+                            fill="currentColor"
+                            strokeWidth={2}
+                            className="shrink-0"
+                          />
+                          <span>Головне фото</span>
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        aria-label="Видалити фото"
+                        onMouseDown={(event) => event.stopPropagation()}
+                        onClick={() => handleRemovePhoto(photo.id)}
+                        className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-text-title shadow-[0_6px_16px_rgba(15,23,41,0.16)] transition hover:bg-white"
+                      >
+                        <X size={16} strokeWidth={2.2} />
+                      </button>
+
+                      <img
+                        src={photo.preview}
+                        alt={photo.file.name}
+                        draggable={false}
+                        className="pointer-events-none h-full w-full object-cover"
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
 
-              {photos.length < MAX_PHOTOS && (
-                <button
-                  type="button"
-                  onMouseDown={(event) => event.stopPropagation()}
-                  onClick={() => inputRef.current?.click()}
-                  className="flex h-48 w-48.5 shrink-0 items-center justify-center rounded-[20px] border border-dashed border-black/12 bg-white text-text-description transition hover:border-primary/40 hover:text-primary"
-                >
-                  <span className="flex flex-col items-center gap-3">
-                    <ImagePlus size={28} strokeWidth={2} />
-                    <span className="text-[14px] font-medium">
-                      Додати ще фото
+                {photos.length < MAX_PHOTOS && (
+                  <button
+                    type="button"
+                    onMouseDown={(event) => event.stopPropagation()}
+                    onClick={() => inputRef.current?.click()}
+                    className="flex h-48 w-48.5 shrink-0 items-center justify-center rounded-[20px] border border-dashed border-black/12 bg-white text-text-description transition hover:border-primary/40 hover:text-primary"
+                  >
+                    <span className="flex flex-col items-center gap-3">
+                      <ImagePlus size={28} strokeWidth={2} />
+                      <span className="text-[14px] font-medium">
+                        Додати ще фото
+                      </span>
                     </span>
-                  </span>
-                </button>
-              )}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -349,11 +382,12 @@ export function CreateListingStepThree({
             variant="primary"
             size="lg"
             onClick={onPublish}
-            className="min-w-80 rounded-2xl font-semibold shadow-[0_14px_28px_rgba(16,185,129,0.24)]"
+            disabled={isSubmitting}
+            className="min-w-80 rounded-2xl font-semibold shadow-[0_14px_28px_rgba(16,185,129,0.24)] disabled:cursor-not-allowed disabled:opacity-60"
           >
             <span className="flex items-center gap-2">
-              Опублікувати оголошення
-              <ArrowRight size={18} strokeWidth={2} />
+              {isSubmitting ? "Публікація..." : "Опублікувати оголошення"}
+              {!isSubmitting ? <ArrowRight size={18} strokeWidth={2} /> : null}
             </span>
           </Button>
         </div>
