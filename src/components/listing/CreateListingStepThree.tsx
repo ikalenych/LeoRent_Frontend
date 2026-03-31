@@ -363,15 +363,15 @@ export function CreateListingStepThree({
           </p>
         </div>
 
-        <div className="mt-10 flex items-center justify-between border-t border-black/8 pt-8">
+        <div className="mt-10 flex flex-col-reverse gap-4 border-t border-black/8 pt-8 sm:flex-row sm:items-center sm:justify-between">
           <Button
             type="button"
             variant="secondary"
             size="lg"
             onClick={onBack}
-            className="min-w-30 rounded-2xl border border-black/10 bg-surface shadow-none"
+            className="w-full rounded-2xl border border-black/10 bg-surface shadow-none sm:min-w-30 sm:w-auto"
           >
-            <span className="flex items-center gap-2">
+            <span className="flex items-center justify-center gap-2">
               <ArrowLeft size={18} strokeWidth={2} />
               Назад
             </span>
@@ -383,9 +383,9 @@ export function CreateListingStepThree({
             size="lg"
             onClick={onPublish}
             disabled={isSubmitting}
-            className="min-w-80 rounded-2xl font-semibold shadow-[0_14px_28px_rgba(16,185,129,0.24)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-2xl font-semibold shadow-[0_14px_28px_rgba(16,185,129,0.24)] disabled:cursor-not-allowed disabled:opacity-60 sm:min-w-80 sm:w-auto"
           >
-            <span className="flex items-center gap-2">
+            <span className="flex items-center justify-center gap-2">
               {isSubmitting ? "Публікація..." : "Опублікувати оголошення"}
               {!isSubmitting ? <ArrowRight size={18} strokeWidth={2} /> : null}
             </span>
