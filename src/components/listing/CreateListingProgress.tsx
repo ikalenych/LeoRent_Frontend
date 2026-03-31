@@ -25,7 +25,7 @@ export function CreateListingProgress({
   const progressWidth = `${(currentStep / 3) * 100}%`;
 
   return (
-    <section className="border-b border-black/10 bg-surface font-display">
+    <section className=" font-display">
       <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 lg:px-10">
         <div className="mx-auto max-w-155">
           <div className="mb-2 flex items-start gap-4 text-sm">

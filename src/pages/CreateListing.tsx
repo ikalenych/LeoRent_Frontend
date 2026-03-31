@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CreateListingProgress } from "../components/listing/CreateListingProgress";
 import { CreateListingStepOne } from "../components/listing/CreateListingStepOne";
 import { CreateListingStepTwo } from "../components/listing/CreateListingStepTwo";
@@ -35,11 +35,30 @@ type ListingStepOneData = {
   amenities: string[];
 };
 
-type PhotoItem = {
+export type PhotoItem = {
   id: string;
-  file: File;
+  file: File | null;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
   preview: string;
 };
+
+type PersistedDocumentMeta = {
+  name: string;
+  size: number;
+  type: string;
+};
+
+type CreateListingDraft = {
+  currentStep: ListingStep;
+  stepOneData: ListingStepOneData;
+  verification: VerificationState;
+  selectedDocumentMeta: PersistedDocumentMeta | null;
+  photos: PhotoItem[];
+};
+
+const CREATE_LISTING_DRAFT_KEY = "create-listing-draft";
 
 const initialStepOneData: ListingStepOneData = {
   address: "",
@@ -58,24 +77,93 @@ const initialStepOneData: ListingStepOneData = {
   amenities: [],
 };
 
+const initialVerification: VerificationState = {
+  status: "idle",
+  address: "",
+  ownerName: "",
+  addressMatched: false,
+  ownerMatched: false,
+  documentAnalyzed: false,
+  errorMessage: "",
+};
+
+function getInitialDraft(): CreateListingDraft | null {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const rawDraft = window.localStorage.getItem(CREATE_LISTING_DRAFT_KEY);
+    if (!rawDraft) return null;
+
+    return JSON.parse(rawDraft) as CreateListingDraft;
+  } catch {
+    return null;
+  }
+}
+
 export default function CreateListing() {
-  const [currentStep, setCurrentStep] = useState<ListingStep>(1);
+  const initialDraft = useMemo(() => getInitialDraft(), []);
+
+  const [currentStep, setCurrentStep] = useState<ListingStep>(
+    initialDraft?.currentStep ?? 1,
+  );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [photos, setPhotos] = useState<PhotoItem[]>([]);
+  const [selectedDocumentMeta, setSelectedDocumentMeta] =
+    useState<PersistedDocumentMeta | null>(
+      initialDraft?.selectedDocumentMeta ?? null,
+    );
+  const [photos, setPhotos] = useState<PhotoItem[]>(initialDraft?.photos ?? []);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [stepOneData, setStepOneData] =
-    useState<ListingStepOneData>(initialStepOneData);
+  const [stepOneData, setStepOneData] = useState<ListingStepOneData>(
+    initialDraft?.stepOneData ?? initialStepOneData,
+  );
 
-  const [verification, setVerification] = useState<VerificationState>({
-    status: "idle",
-    address: "",
-    ownerName: "",
-    addressMatched: false,
-    ownerMatched: false,
-    documentAnalyzed: false,
-    errorMessage: "",
-  });
+  const [verification, setVerification] = useState<VerificationState>(
+    initialDraft?.verification ?? initialVerification,
+  );
+
+  useEffect(() => {
+    try {
+      const draft: CreateListingDraft = {
+        currentStep,
+        stepOneData,
+        verification,
+        selectedDocumentMeta: selectedFile
+          ? {
+              name: selectedFile.name,
+              size: selectedFile.size,
+              type: selectedFile.type,
+            }
+          : selectedDocumentMeta,
+        photos: photos.map((photo) => ({
+          id: photo.id,
+          file: null,
+          fileName: photo.fileName,
+          fileType: photo.fileType,
+          fileSize: photo.fileSize,
+          preview: photo.preview,
+        })),
+      };
+
+      window.localStorage.setItem(
+        CREATE_LISTING_DRAFT_KEY,
+        JSON.stringify(draft),
+      );
+    } catch (error) {
+      console.error("Failed to save create listing draft:", error);
+    }
+  }, [
+    currentStep,
+    stepOneData,
+    verification,
+    selectedFile,
+    selectedDocumentMeta,
+    photos,
+  ]);
+
+  function clearDraft() {
+    window.localStorage.removeItem(CREATE_LISTING_DRAFT_KEY);
+  }
 
   function goToNextStep() {
     setCurrentStep((prev) => {
@@ -100,6 +188,11 @@ export default function CreateListing() {
 
   async function handleVerifyDocument(file: File) {
     setSelectedFile(file);
+    setSelectedDocumentMeta({
+      name: file.name,
+      size: file.size,
+      type: file.type,
+    });
 
     setVerification({
       status: "verifying",
@@ -126,16 +219,8 @@ export default function CreateListing() {
 
   function handleRemoveDocument() {
     setSelectedFile(null);
-
-    setVerification({
-      status: "idle",
-      address: "",
-      ownerName: "",
-      addressMatched: false,
-      ownerMatched: false,
-      documentAnalyzed: false,
-      errorMessage: "",
-    });
+    setSelectedDocumentMeta(null);
+    setVerification(initialVerification);
   }
 
   async function handlePublishListing() {
@@ -180,20 +265,20 @@ export default function CreateListing() {
         addressMatched: verification.addressMatched,
         ownerMatched: verification.ownerMatched,
         documentAnalyzed: verification.documentAnalyzed,
-        hasDocument: Boolean(selectedFile),
+        hasDocument: Boolean(selectedFile || selectedDocumentMeta),
         document: selectedFile
           ? {
               name: selectedFile.name,
               size: selectedFile.size,
               type: selectedFile.type,
             }
-          : null,
+          : selectedDocumentMeta,
       },
       photos: photos.map((photo, index) => ({
         id: photo.id,
-        name: photo.file.name,
-        size: photo.file.size,
-        type: photo.file.type,
+        name: photo.fileName,
+        size: photo.fileSize,
+        type: photo.fileType,
         isPrimary: index === 0,
       })),
       createdAt: new Date().toISOString(),
@@ -206,6 +291,7 @@ export default function CreateListing() {
 
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
+      clearDraft();
       alert("Оголошення успішно підготовлено до публікації.");
     } catch (error) {
       console.error("Failed to publish listing:", error);
@@ -216,10 +302,10 @@ export default function CreateListing() {
   }
 
   return (
-    <div className="min-h-screen bg-page">
-      <CreateListingProgress currentStep={currentStep} />
+    <section className="bg-page min-h-screen pb-10">
+      <div className="mx-auto max-w-310 px-4 pt-8 sm:px-6 lg:px-8">
+        <CreateListingProgress currentStep={currentStep} />
 
-      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-10 lg:py-12">
         {currentStep === 1 ? (
           <CreateListingStepOne
             onNext={goToNextStep}
@@ -230,12 +316,21 @@ export default function CreateListing() {
 
         {currentStep === 2 ? (
           <CreateListingStepTwo
-            onNext={goToNextStep}
             onBack={goToPreviousStep}
-            selectedFile={selectedFile}
-            verification={verification}
-            onVerifyDocument={handleVerifyDocument}
+            onNext={goToNextStep}
+            onVerify={handleVerifyDocument}
             onRemoveDocument={handleRemoveDocument}
+            selectedFile={selectedFile}
+            documentMeta={
+              selectedFile
+                ? {
+                    name: selectedFile.name,
+                    size: selectedFile.size,
+                    type: selectedFile.type,
+                  }
+                : selectedDocumentMeta
+            }
+            verification={verification}
           />
         ) : null}
 
@@ -248,7 +343,7 @@ export default function CreateListing() {
             onPhotosChange={setPhotos}
           />
         ) : null}
-      </main>
-    </div>
+      </div>
+    </section>
   );
 }

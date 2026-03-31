@@ -35,21 +35,29 @@ type VerificationState = {
   errorMessage: string;
 };
 
+type DocumentMeta = {
+  name: string;
+  size: number;
+  type: string;
+};
+
 type CreateListingStepTwoProps = {
-  onNext?: () => void;
   onBack?: () => void;
-  selectedFile: File | null;
-  verification: VerificationState;
-  onVerifyDocument: (file: File) => Promise<void> | void;
+  onNext?: () => void;
+  onVerify: (file: File) => void;
   onRemoveDocument: () => void;
+  selectedFile: File | null;
+  documentMeta: DocumentMeta | null;
+  verification: VerificationState;
 };
 
 export function CreateListingStepTwo({
   onNext,
   onBack,
   selectedFile,
+  documentMeta,
   verification,
-  onVerifyDocument,
+  onVerify,
   onRemoveDocument,
 }: CreateListingStepTwoProps) {
   const [isDragging, setIsDragging] = useState(false);
@@ -71,7 +79,7 @@ export function CreateListingStepTwo({
   function handleFile(file: File | null) {
     const validFile = validateFile(file);
     if (!validFile) return;
-    onVerifyDocument(validFile);
+    onVerify(validFile);
   }
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -124,6 +132,14 @@ export function CreateListingStepTwo({
 
     return <div className="h-4 w-4 rounded-full bg-white/20" />;
   }
+
+  const currentDocument = selectedFile
+    ? {
+        name: selectedFile.name,
+        size: selectedFile.size,
+        type: selectedFile.type,
+      }
+    : documentMeta;
 
   return (
     <section className="bg-page pb-10 pt-8 font-display">
@@ -216,8 +232,8 @@ export function CreateListingStepTwo({
           </div>
         </div>
 
-        {selectedFile && (
-          <div className="relative mt-4 rounded-2xl border border-black/10 bg-surface pl-4 pr-10 py-4">
+        {currentDocument && (
+          <div className="relative mt-4 rounded-2xl border border-black/10 bg-surface py-4 pl-4 pr-10">
             <button
               type="button"
               onClick={handleRemoveFile}
@@ -236,10 +252,10 @@ export function CreateListingStepTwo({
 
               <div className="min-w-0 space-y-1">
                 <p className="truncate text-[15px] font-medium text-text-title">
-                  {selectedFile.name}
+                  {currentDocument.name}
                 </p>
                 <p className="text-[14px] leading-6 text-text-description">
-                  {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                  {(currentDocument.size / 1024 / 1024).toFixed(2)} MB
                 </p>
               </div>
             </div>
@@ -296,15 +312,15 @@ export function CreateListingStepTwo({
           )}
         </div>
 
-        <div className="mt-10 flex items-center justify-between">
+        <div className="mt-10 flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Button
             type="button"
             variant="secondary"
             size="lg"
             onClick={onBack}
-            className="min-w-30 rounded-2xl border border-black/10 bg-surface shadow-none"
+            className="w-full rounded-2xl border border-black/10 bg-surface shadow-none sm:min-w-30 sm:w-auto"
           >
-            <span className="flex items-center gap-2">
+            <span className="flex items-center justify-center gap-2">
               <ArrowLeft size={18} strokeWidth={2} />
               Назад
             </span>
@@ -316,9 +332,9 @@ export function CreateListingStepTwo({
             size="lg"
             disabled={verification.status !== "success"}
             onClick={onNext}
-            className="min-w-31.5 rounded-2xl font-semibold shadow-[0_10px_24px_rgba(16,185,129,0.22)]"
+            className="w-full rounded-2xl font-semibold shadow-[0_10px_24px_rgba(16,185,129,0.22)] sm:min-w-31.5 sm:w-auto"
           >
-            <span className="flex items-center gap-2">
+            <span className="flex items-center justify-center gap-2">
               Далі
               <ArrowRight size={18} strokeWidth={2} />
             </span>
