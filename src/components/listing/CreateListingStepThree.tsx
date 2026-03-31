@@ -14,7 +14,10 @@ import { Button } from "../ui/Button";
 
 export type PhotoItem = {
   id: string;
-  file: File;
+  file: File | null;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
   preview: string;
 };
 
@@ -62,12 +65,6 @@ export function CreateListingStepThree({
     };
   }, []);
 
-  useEffect(() => {
-    return () => {
-      photos.forEach((photo) => URL.revokeObjectURL(photo.preview));
-    };
-  }, []);
-
   function openFileDialog() {
     inputRef.current?.click();
   }
@@ -78,6 +75,17 @@ export function CreateListingStepThree({
     sliderRef.current.scrollBy({
       left: offset,
       behavior: "smooth",
+    });
+  }
+
+  function readFileAsDataUrl(file: File) {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error("Не вдалося прочитати файл"));
+
+      reader.readAsDataURL(file);
     });
   }
 
@@ -109,7 +117,7 @@ export function CreateListingStepThree({
     return validFiles;
   }
 
-  function addFiles(fileList: FileList | null) {
+  async function addFiles(fileList: FileList | null) {
     if (!fileList) return;
 
     const validFiles = validateFiles(Array.from(fileList));
@@ -120,11 +128,18 @@ export function CreateListingStepThree({
       return;
     }
 
-    const mappedFiles = validFiles.slice(0, availableSlots).map((file) => ({
-      id: `${file.name}-${file.lastModified}-${Math.random()}`,
-      file,
-      preview: URL.createObjectURL(file),
-    }));
+    const filesToAdd = validFiles.slice(0, availableSlots);
+
+    const mappedFiles = await Promise.all(
+      filesToAdd.map(async (file) => ({
+        id: `${file.name}-${file.lastModified}-${Math.random()}`,
+        file,
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+        preview: await readFileAsDataUrl(file),
+      })),
+    );
 
     if (validFiles.length > availableSlots) {
       setErrorMessage(`Можна завантажити максимум ${MAX_PHOTOS} фото.`);
@@ -134,7 +149,7 @@ export function CreateListingStepThree({
   }
 
   function handleInputChange(event: React.ChangeEvent<HTMLInputElement>) {
-    addFiles(event.target.files);
+    void addFiles(event.target.files);
 
     if (inputRef.current) {
       inputRef.current.value = "";
@@ -154,16 +169,10 @@ export function CreateListingStepThree({
   function handleDropZoneDrop(event: React.DragEvent<HTMLDivElement>) {
     event.preventDefault();
     setIsDragging(false);
-    addFiles(event.dataTransfer.files);
+    void addFiles(event.dataTransfer.files);
   }
 
   function handleRemovePhoto(id: string) {
-    const photoToRemove = photos.find((photo) => photo.id === id);
-
-    if (photoToRemove) {
-      URL.revokeObjectURL(photoToRemove.preview);
-    }
-
     onPhotosChange(photos.filter((photo) => photo.id !== id));
   }
 
@@ -328,7 +337,7 @@ export function CreateListingStepThree({
 
                       <img
                         src={photo.preview}
-                        alt={photo.file.name}
+                        alt={photo.fileName}
                         draggable={false}
                         className="pointer-events-none h-full w-full object-cover"
                       />
