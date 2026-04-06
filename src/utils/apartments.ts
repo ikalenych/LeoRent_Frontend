@@ -33,6 +33,10 @@ export function filterApartments(
     if (filters.floorMax && a.floor > filters.floorMax) return false;
     if (filters.ownerType !== "all" && a.ownerType !== filters.ownerType)
       return false;
+    if (filters.rentType !== "all" && a.rentType !== filters.rentType)
+      return false;
+    if (filters.withFurniture && !a.details?.furniture) return false;
+    if (filters.petsAllowed && !a.details?.pets) return false;
     return true;
   });
 }

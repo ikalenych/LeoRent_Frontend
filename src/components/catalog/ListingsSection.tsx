@@ -28,6 +28,7 @@ function filtersToParams(f: FilterState, sort: SortOption): URLSearchParams {
   if (f.withFurniture) p.set("furniture", "1");
   if (f.petsAllowed) p.set("pets", "1");
   if (f.ownerType !== "all") p.set("ownerType", f.ownerType);
+  if (f.rentType !== "all") p.set("rentType", f.rentType);
   if (sort !== "newest") p.set("sort", sort);
   return p;
 }
@@ -49,6 +50,7 @@ function paramsToFilters(p: URLSearchParams): {
       withFurniture: p.get("furniture") === "1",
       petsAllowed: p.get("pets") === "1",
       ownerType: (p.get("ownerType") as FilterState["ownerType"]) ?? "all",
+      rentType: (p.get("rentType") as FilterState["rentType"]) ?? "all",
     },
     sort: (p.get("sort") as SortOption) ?? "newest",
   };
