@@ -257,7 +257,7 @@ export const MOCK_APARTMENTS: Omit<ApartmentCardProps, "isLiked" | "onLike">[] =
       title: "Однокімнатна на Франка",
       description:
         "Невелика охайна квартира в тихому дворі. Після косметичного ремонту.",
-      location: "вул. Івана Франка",
+      location: "вулиця Івана Франка, 39",
       district: "Франківський",
       cost: 13500,
       rooms: 1,
@@ -284,7 +284,7 @@ export const MOCK_APARTMENTS: Omit<ApartmentCardProps, "isLiked" | "onLike">[] =
       title: "Елітна квартира в центрі",
       description:
         "Представницька квартира в самому серці Львова. Авторський дизайн, преміум оздоблення.",
-      location: "пл. Ринок",
+      location: "просп. Свободи, 15",
       district: "Галицький",
       cost: 45000,
       rooms: 4,
