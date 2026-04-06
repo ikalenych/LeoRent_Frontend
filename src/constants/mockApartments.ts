@@ -1,5 +1,11 @@
 import type { ApartmentCardProps } from "../types/apartment";
 
+function makePhotos(id: string, count: number): { url: string }[] {
+  return Array.from({ length: count }, (_, i) => ({
+    url: `https://picsum.photos/seed/${id}-${i}/800/500`,
+  }));
+}
+
 export const MOCK_APARTMENTS: Omit<ApartmentCardProps, "isLiked" | "onLike">[] =
   [
     {
@@ -14,7 +20,7 @@ export const MOCK_APARTMENTS: Omit<ApartmentCardProps, "isLiked" | "onLike">[] =
       square: 54,
       floor: 4,
       floorInHouse: 12,
-      photos: [{ url: "https://picsum.photos/seed/apt1/390/256" }],
+      photos: makePhotos("apt1", 4),
       ownerType: "Owner",
       rentType: "Default",
       details: {
@@ -40,7 +46,7 @@ export const MOCK_APARTMENTS: Omit<ApartmentCardProps, "isLiked" | "onLike">[] =
       square: 42,
       floor: 2,
       floorInHouse: 4,
-      photos: [{ url: "https://picsum.photos/seed/apt2/390/256" }],
+      photos: makePhotos("apt2", 5),
       ownerType: "Rieltor",
       rentType: "Daily",
       details: {
@@ -66,7 +72,7 @@ export const MOCK_APARTMENTS: Omit<ApartmentCardProps, "isLiked" | "onLike">[] =
       square: 48,
       floor: 7,
       floorInHouse: 9,
-      photos: [{ url: "https://picsum.photos/seed/apt3/390/256" }],
+      photos: makePhotos("apt3", 3),
       ownerType: "Owner",
       rentType: "Default",
       details: {
@@ -92,7 +98,7 @@ export const MOCK_APARTMENTS: Omit<ApartmentCardProps, "isLiked" | "onLike">[] =
       square: 110,
       floor: 5,
       floorInHouse: 5,
-      photos: [{ url: "https://picsum.photos/seed/apt4/390/256" }],
+      photos: makePhotos("apt4", 5),
       ownerType: "Rieltor",
       rentType: "Daily",
       details: {
@@ -118,7 +124,7 @@ export const MOCK_APARTMENTS: Omit<ApartmentCardProps, "isLiked" | "onLike">[] =
       square: 38,
       floor: 3,
       floorInHouse: 5,
-      photos: [{ url: "https://picsum.photos/seed/apt5/390/256" }],
+      photos: makePhotos("apt5", 3),
       ownerType: "Owner",
       rentType: "Default",
       details: {
@@ -144,7 +150,7 @@ export const MOCK_APARTMENTS: Omit<ApartmentCardProps, "isLiked" | "onLike">[] =
       square: 62,
       floor: 8,
       floorInHouse: 10,
-      photos: [{ url: "https://picsum.photos/seed/apt6/390/256" }],
+      photos: makePhotos("apt6", 4),
       ownerType: "Rieltor",
       rentType: "Default",
       details: {
@@ -170,7 +176,7 @@ export const MOCK_APARTMENTS: Omit<ApartmentCardProps, "isLiked" | "onLike">[] =
       square: 30,
       floor: 5,
       floorInHouse: 10,
-      photos: [{ url: "https://picsum.photos/seed/apt7/390/256" }],
+      photos: makePhotos("apt7", 2),
       ownerType: "Owner",
       rentType: "Daily",
       details: {
@@ -188,7 +194,7 @@ export const MOCK_APARTMENTS: Omit<ApartmentCardProps, "isLiked" | "onLike">[] =
       id: "8",
       title: "3-кімнатна на Городоцькій",
       description:
-        "Просторa трикімнатна квартира з окремими кімнатами. Підходить для сім'ї.",
+        "Простора трикімнатна квартира з окремими кімнатами. Підходить для сім'ї.",
       location: "вул. Городоцька",
       district: "Залізничний",
       cost: 19000,
@@ -196,7 +202,7 @@ export const MOCK_APARTMENTS: Omit<ApartmentCardProps, "isLiked" | "onLike">[] =
       square: 80,
       floor: 2,
       floorInHouse: 9,
-      photos: [{ url: "https://picsum.photos/seed/apt8/390/256" }],
+      photos: makePhotos("apt8", 4),
       ownerType: "Owner",
       rentType: "Default",
       details: {
@@ -222,7 +228,7 @@ export const MOCK_APARTMENTS: Omit<ApartmentCardProps, "isLiked" | "onLike">[] =
       square: 56,
       floor: 3,
       floorInHouse: 6,
-      photos: [{ url: "https://picsum.photos/seed/apt9/390/256" }],
+      photos: makePhotos("apt9", 3),
       ownerType: "Rieltor",
       rentType: "Daily",
       details: {
@@ -248,7 +254,7 @@ export const MOCK_APARTMENTS: Omit<ApartmentCardProps, "isLiked" | "onLike">[] =
       square: 35,
       floor: 1,
       floorInHouse: 5,
-      photos: [{ url: "https://picsum.photos/seed/apt10/390/256" }],
+      photos: makePhotos("apt10", 2),
       ownerType: "Owner",
       rentType: "Default",
       details: {
@@ -274,7 +280,7 @@ export const MOCK_APARTMENTS: Omit<ApartmentCardProps, "isLiked" | "onLike">[] =
       square: 120,
       floor: 3,
       floorInHouse: 4,
-      photos: [{ url: "https://picsum.photos/seed/apt11/390/256" }],
+      photos: makePhotos("apt11", 5),
       ownerType: "Owner",
       rentType: "Daily",
       details: {
@@ -300,7 +306,7 @@ export const MOCK_APARTMENTS: Omit<ApartmentCardProps, "isLiked" | "onLike">[] =
       square: 50,
       floor: 4,
       floorInHouse: 7,
-      photos: [{ url: "https://picsum.photos/seed/apt12/390/256" }],
+      photos: makePhotos("apt12", 3),
       ownerType: "Rieltor",
       rentType: "Daily",
       details: {
