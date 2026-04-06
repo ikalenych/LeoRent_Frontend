@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown, X } from "lucide-react";
+import type { RentType } from "../../types/apartment";
 
 export interface FilterState {
   district: string;
@@ -13,6 +14,7 @@ export interface FilterState {
   withFurniture: boolean;
   petsAllowed: boolean;
   ownerType: "all" | "Owner" | "Rieltor";
+  rentType: "all" | RentType;
 }
 
 export const DEFAULT_FILTERS: FilterState = {
@@ -27,6 +29,7 @@ export const DEFAULT_FILTERS: FilterState = {
   withFurniture: false,
   petsAllowed: false,
   ownerType: "all",
+  rentType: "all",
 };
 
 const DISTRICTS = [
@@ -59,7 +62,8 @@ function hasAnyFilter(f: FilterState) {
     f.floorMax > 0 ||
     f.withFurniture ||
     f.petsAllowed ||
-    f.ownerType !== "all"
+    f.ownerType !== "all" ||
+    f.rentType !== "all"
   );
 }
 
@@ -265,6 +269,32 @@ export function DesktopFilters({
         ))}
       </div>
 
+      {/* Тип оренди */}
+      <div className="flex flex-col gap-2">
+        <label className="text-xs font-medium text-text-description uppercase tracking-wide">
+          Тип оренди
+        </label>
+        {(["all", "Default", "Daily"] as const).map((type) => (
+          <label
+            key={type}
+            className="flex items-center gap-2 text-sm text-text-title cursor-pointer"
+          >
+            <input
+              type="radio"
+              name="rentType-desktop"
+              checked={filters.rentType === type}
+              onChange={() => set("rentType", type)}
+              className="accent-primary"
+            />
+            {type === "all"
+              ? "Всі"
+              : type === "Default"
+                ? "Тривала оренда"
+                : "Подобово"}
+          </label>
+        ))}
+      </div>
+
       {isDirty && (
         <button
           onClick={onApply}
@@ -284,7 +314,8 @@ type ChipKey =
   | "ownerType"
   | "price"
   | "square"
-  | "extra";
+  | "extra"
+  | "rentType";
 
 export function MobileFilters({
   filters,
@@ -319,7 +350,6 @@ export function MobileFilters({
         setOpenChip(null);
       }
     };
-
     if (openChip) {
       document.addEventListener("mousedown", handleClickOutside);
       return () =>
@@ -333,6 +363,7 @@ export function MobileFilters({
   const hasPrice = filters.priceMin > 0 || filters.priceMax > 0;
   const hasSquare = filters.squareMin > 0 || filters.squareMax > 0;
   const hasExtra = filters.withFurniture || filters.petsAllowed;
+  const hasRentType = filters.rentType !== "all";
   const hasAny = hasAnyFilter(filters);
 
   const roomsLabel = hasRooms
@@ -366,6 +397,12 @@ export function MobileFilters({
         : filters.petsAllowed
           ? "З тваринами"
           : "Додатково";
+  const rentTypeLabel =
+    filters.rentType === "Daily"
+      ? "Подобово"
+      : filters.rentType === "Default"
+        ? "Тривала оренда"
+        : "Тип оренди";
 
   const chipBase =
     "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors cursor-pointer select-none font-display";
@@ -386,6 +423,7 @@ export function MobileFilters({
   return (
     <div className="flex flex-col gap-3 mb-4" ref={dropdownRef}>
       <div className="flex flex-wrap gap-2 items-center">
+        {/* Район */}
         <button
           onClick={() => toggle("district")}
           className={`${chipBase} ${hasDistrict ? chipOn : chipOff}`}
@@ -403,6 +441,7 @@ export function MobileFilters({
           )}
         </button>
 
+        {/* Кімнати */}
         <button
           onClick={() => toggle("rooms")}
           className={`${chipBase} ${hasRooms ? chipOn : chipOff}`}
@@ -420,6 +459,7 @@ export function MobileFilters({
           )}
         </button>
 
+        {/* Ціна */}
         <button
           onClick={() => toggle("price")}
           className={`${chipBase} ${hasPrice ? chipOn : chipOff}`}
@@ -438,6 +478,7 @@ export function MobileFilters({
           )}
         </button>
 
+        {/* Площа */}
         <button
           onClick={() => toggle("square")}
           className={`${chipBase} ${hasSquare ? chipOn : chipOff}`}
@@ -456,6 +497,7 @@ export function MobileFilters({
           )}
         </button>
 
+        {/* Тип оголошення */}
         <button
           onClick={() => toggle("ownerType")}
           className={`${chipBase} ${hasOwner ? chipOn : chipOff}`}
@@ -473,6 +515,25 @@ export function MobileFilters({
           )}
         </button>
 
+        {/* Тип оренди */}
+        <button
+          onClick={() => toggle("rentType")}
+          className={`${chipBase} ${hasRentType ? chipOn : chipOff}`}
+        >
+          {rentTypeLabel}
+          {hasRentType ? (
+            <ClearIcon
+              onClear={() => {
+                set("rentType", "all");
+                setOpenChip(null);
+              }}
+            />
+          ) : (
+            <ChevronDown className="w-3.5 h-3.5" />
+          )}
+        </button>
+
+        {/* Додатково */}
         <button
           onClick={() => toggle("extra")}
           className={`${chipBase} ${hasExtra ? chipOn : chipOff}`}
@@ -638,6 +699,27 @@ export function MobileFilters({
                 : type === "Owner"
                   ? "Власник"
                   : "Рієлтор"}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {openChip === "rentType" && (
+        <div className="relative z-50 bg-surface rounded-2xl shadow-lg p-4 flex flex-col gap-1 border border-gray-100">
+          {(["all", "Default", "Daily"] as const).map((type) => (
+            <button
+              key={type}
+              onClick={() => {
+                set("rentType", type);
+                setOpenChip(null);
+              }}
+              className={`text-left text-sm px-3 py-2 rounded-xl transition-colors ${filters.rentType === type ? "bg-primary text-white" : "hover:bg-page text-text-title"}`}
+            >
+              {type === "all"
+                ? "Всі"
+                : type === "Default"
+                  ? "Тривала оренда"
+                  : "Подобово"}
             </button>
           ))}
         </div>

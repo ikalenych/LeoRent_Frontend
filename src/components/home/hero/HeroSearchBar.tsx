@@ -12,7 +12,7 @@ const districts = [
   "Залізничний",
 ];
 const rooms = ["Будь-яка", "1", "2", "3", "4+"];
-const durations = ["Тривала"];
+const durations = ["Тривала", "Подобова"];
 
 interface SelectDropdownProps {
   label: string;
@@ -123,6 +123,11 @@ export function HeroSearchBar() {
     if (room !== "Будь-яка") {
       const roomNum = room === "4+" ? "4" : room;
       params.set("rooms", roomNum);
+    }
+    if (duration === "Подобова") {
+      params.set("rentType", "Daily");
+    } else {
+      params.set("rentType", "Default");
     }
 
     const queryString = params.toString();
