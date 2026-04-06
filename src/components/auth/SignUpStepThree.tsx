@@ -37,7 +37,11 @@ function formatPhoneValue(value: string) {
   }
 
   if (digits.startsWith("0")) {
-    return `+38${digits.slice(0, 10)}`;
+    return `+380${digits.slice(1, 10)}`;
+  }
+
+  if (digits.startsWith("38")) {
+    return `+${digits.slice(0, 12)}`;
   }
 
   return `+380${digits.slice(0, 9)}`;
@@ -108,15 +112,24 @@ export function SignUpStepThree({
             type="tel"
             placeholder="+380 XX XXX XX XX"
             autoComplete="tel"
-            value={values.phone}
+            value={values.phone || "+380"}
             error={errors.phone}
-            onFocus={() => {
-              if (!values.phone.trim()) {
-                onChange({ phone: "+380" });
-              }
-            }}
             onChange={(e) => {
-              onChange({ phone: formatPhoneValue(e.target.value) });
+              const nextValue = e.target.value;
+
+              if (!nextValue || nextValue === "+") {
+                onChange({ phone: "+380" });
+                return;
+              }
+
+              const formatted = formatPhoneValue(nextValue);
+
+              if (formatted.length < 4) {
+                onChange({ phone: "+380" });
+                return;
+              }
+
+              onChange({ phone: formatted });
             }}
             icon={<Phone size={20} strokeWidth={1.75} />}
           />
