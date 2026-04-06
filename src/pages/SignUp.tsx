@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
+import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { SignUpStepOne } from "../components/auth/SignUpStepOne";
 import { SignUpStepTwo } from "../components/auth/SignUpStepTwo";
 import { SignUpStepThree } from "../components/auth/SignUpStepThree";
+import { auth, googleProvider } from "../lib/firebase";
+import { persistAuth } from "../lib/auth-api";
+import { mapApiErrorToUaMessage } from "../lib/error-messages";
 
 export type UserRole = "owner" | "realtor" | "tenant" | "";
 
@@ -27,6 +31,11 @@ export interface StepThreeErrors {
   phone?: string;
 }
 
+type EmailValidationResult =
+  | { isValid: true; value: string }
+  | { isValid: false; error: string };
+
+const API_URL = "https://leorent-backend.onrender.com";
 const SIGN_UP_STORAGE_KEY = "leorent-signup";
 
 const initialFormData: SignUpFormData = {
@@ -56,30 +65,40 @@ function getInitialPersistedState() {
     formData: initialFormData,
   };
 
+  if (typeof window !== "undefined") {
+    const params = new URLSearchParams(window.location.search);
+    const emailFromUrl = params.get("email");
+
+    if (emailFromUrl) {
+      return {
+        currentStep: 1 as 1 | 2 | 3,
+        formData: {
+          ...initialFormData,
+          email: emailFromUrl,
+        },
+      };
+    }
+  }
+
   try {
     const savedState = localStorage.getItem(SIGN_UP_STORAGE_KEY);
-
     if (!savedState) return fallback;
 
     const parsedState: PersistedSignUpState = JSON.parse(savedState);
 
-    const restoredFormData: SignUpFormData = {
-      ...initialFormData,
-      email: parsedState.formData.email ?? "",
-      role: parsedState.formData.role ?? "",
-      firstName: parsedState.formData.firstName ?? "",
-      lastName: parsedState.formData.lastName ?? "",
-      phone: parsedState.formData.phone ?? "",
-      password: "",
-      confirmPassword: "",
-    };
-
-    const restoredStep =
-      parsedState.currentStep > 1 ? 1 : parsedState.currentStep;
-
     return {
-      currentStep: restoredStep,
-      formData: restoredFormData,
+      currentStep:
+        parsedState.currentStep > 1
+          ? (1 as 1 | 2 | 3)
+          : parsedState.currentStep,
+      formData: {
+        ...initialFormData,
+        email: parsedState.formData.email ?? "",
+        role: parsedState.formData.role ?? "",
+        firstName: parsedState.formData.firstName ?? "",
+        lastName: parsedState.formData.lastName ?? "",
+        phone: parsedState.formData.phone ?? "",
+      },
     };
   } catch {
     return fallback;
@@ -100,17 +119,86 @@ function normalizeUsername(firstName: string, lastName: string) {
     .join(" ");
 }
 
-function mapUserType(role: UserRole): "agent" | "owner" | "default" {
+function mapRoleToApiUserType(role: UserRole): "AGENT" | "OWNER" | "DEFAULT" {
   switch (role) {
-    case "realtor":
-      return "agent";
     case "owner":
-      return "owner";
+      return "OWNER";
+    case "realtor":
+      return "AGENT";
     case "tenant":
-      return "default";
+      return "DEFAULT";
     default:
-      return "default";
+      return "DEFAULT";
   }
+}
+
+function validateEmailValue(email: string): EmailValidationResult {
+  const cleanEmail = email.trim().toLowerCase();
+
+  if (!cleanEmail) {
+    return { isValid: false, error: "Введіть електронну пошту" };
+  }
+
+  if (cleanEmail.length > 254) {
+    return { isValid: false, error: "Електронна пошта занадто довга" };
+  }
+
+  const forbiddenChars = /['";\\<>`]/;
+  if (forbiddenChars.test(cleanEmail)) {
+    return {
+      isValid: false,
+      error: "Електронна пошта містить заборонені символи",
+    };
+  }
+
+  if (cleanEmail.includes("..")) {
+    return {
+      isValid: false,
+      error: "Некоректний формат електронної пошти",
+    };
+  }
+
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (!emailRegex.test(cleanEmail)) {
+    return {
+      isValid: false,
+      error: "Некоректний формат електронної пошти",
+    };
+  }
+
+  return { isValid: true, value: cleanEmail };
+}
+
+async function signupRequest(payload: {
+  email: string;
+  username: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  password: string;
+  user_type: "AGENT" | "OWNER" | "DEFAULT";
+}) {
+  const response = await fetch(`${API_URL}/users/signup/v1`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(
+      mapApiErrorToUaMessage(
+        response.status,
+        data,
+        "Не вдалося створити акаунт",
+      ),
+    );
+  }
+
+  return data;
 }
 
 export default function SignUp() {
@@ -128,6 +216,7 @@ export default function SignUp() {
   const [stepTwoError, setStepTwoError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   useEffect(() => {
     const persistedData: PersistedSignUpState = {
@@ -151,12 +240,6 @@ export default function SignUp() {
     formData.phone,
   ]);
 
-  useEffect(() => {
-    return () => {
-      localStorage.removeItem(SIGN_UP_STORAGE_KEY);
-    };
-  }, []);
-
   function updateFormData(fields: Partial<SignUpFormData>) {
     setFormData((prev) => ({ ...prev, ...fields }));
   }
@@ -171,30 +254,23 @@ export default function SignUp() {
 
   function validateStepOne() {
     const errors: StepOneErrors = {};
+    const emailValidation = validateEmailValue(formData.email);
 
-    if (!formData.email.trim()) {
-      errors.email = "Введіть електронну пошту";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
-      errors.email = "Некоректний формат електронної пошти";
+    if (!emailValidation.isValid) {
+      errors.email = emailValidation.error;
     }
 
     if (!formData.password.trim()) {
       errors.password = "Введіть пароль";
     } else if (formData.password.trim().length < 8) {
       errors.password = "Пароль має містити щонайменше 8 символів";
-    } else if (formData.password.trim().length > 16) {
-      errors.password = "Пароль має містити не більше 16 символів";
+    } else if (formData.password.trim().length > 64) {
+      errors.password = "Пароль має містити не більше 64 символів";
     }
 
     if (!formData.confirmPassword.trim()) {
       errors.confirmPassword = "Підтвердіть пароль";
-    }
-
-    if (
-      formData.password.trim() &&
-      formData.confirmPassword.trim() &&
-      formData.password !== formData.confirmPassword
-    ) {
+    } else if (formData.password !== formData.confirmPassword) {
       errors.confirmPassword = "Паролі не співпадають";
     }
 
@@ -229,13 +305,58 @@ export default function SignUp() {
 
     if (!formData.phone.trim()) {
       errors.phone = "Введіть телефон";
+    } else if (!/^\+380\d{9}$/.test(formData.phone.trim())) {
+      errors.phone = "Введіть телефон у форматі +380XXXXXXXXX";
     }
 
     setStepThreeErrors(errors);
     return Object.keys(errors).length === 0;
   }
 
+  async function handleStepOneGoogle() {
+    setSubmitError("");
+    setIsGoogleLoading(true);
+
+    try {
+      const credential = await signInWithPopup(auth, googleProvider);
+      const firebaseUser = credential.user;
+      const providerCredential =
+        GoogleAuthProvider.credentialFromResult(credential);
+
+      const idToken =
+        providerCredential?.idToken || (await firebaseUser.getIdToken());
+
+      localStorage.setItem("token", idToken);
+
+      updateFormData({
+        email: firebaseUser.email || "",
+        password: "google-auth",
+        confirmPassword: "google-auth",
+        firstName: firebaseUser.displayName?.split(" ")[0] || "",
+        lastName: firebaseUser.displayName?.split(" ").slice(1).join(" ") || "",
+      });
+
+      nextStep();
+    } catch (error: any) {
+      if (
+        error?.code === "auth/popup-closed-by-user" ||
+        error?.message?.includes("popup-closed-by-user")
+      ) {
+        setSubmitError("");
+      } else {
+        setSubmitError(
+          error instanceof Error
+            ? error.message
+            : "Сталася помилка при вході через Google",
+        );
+      }
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  }
+
   function handleStepOneSubmit() {
+    setSubmitError("");
     if (!validateStepOne()) return;
     nextStep();
   }
@@ -246,6 +367,8 @@ export default function SignUp() {
   }
 
   async function handleFinalSubmit() {
+    setSubmitError("");
+
     if (!validateStepThree()) return;
 
     const normalizedUsername = normalizeUsername(
@@ -256,47 +379,40 @@ export default function SignUp() {
     if (!normalizedUsername) {
       setStepThreeErrors((prev) => ({
         ...prev,
-        firstName: prev.firstName || "Ім'я та прізвище мають бути без цифр",
-        lastName: prev.lastName || "Ім'я та прізвище мають бути без цифр",
+        firstName: prev.firstName || "Ім'я не повинно містити цифри",
+        lastName: prev.lastName || "Прізвище не повинно містити цифри",
       }));
       return;
     }
 
-    setSubmitError("");
+    const emailValidation = validateEmailValue(formData.email);
+
+    if (!emailValidation.isValid) {
+      setStepOneErrors((prev) => ({
+        ...prev,
+        email: emailValidation.error,
+      }));
+      setCurrentStep(1);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/users/signup/v1", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: formData.email.trim().toLowerCase(),
-          username: normalizedUsername,
-          phone: formData.phone.trim(),
-          password: formData.password,
-          user_type: mapUserType(formData.role),
-        }),
+      const data = await signupRequest({
+        email: emailValidation.value,
+        username: normalizedUsername,
+        first_name: formData.firstName.trim(),
+        last_name: formData.lastName.trim(),
+        phone: formData.phone.trim(),
+        password: formData.password,
+        user_type: mapRoleToApiUserType(formData.role),
       });
 
-      const data = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        const message =
-          typeof data?.detail === "string"
-            ? data.detail
-            : Array.isArray(data?.detail)
-              ? data.detail.map((item: { msg?: string }) => item.msg).join(", ")
-              : data?.message || "Не вдалося створити акаунт";
-
-        throw new Error(message);
-      }
-
+      persistAuth(data);
       localStorage.removeItem(SIGN_UP_STORAGE_KEY);
-
-      console.log("Registration completed:", data);
-    } catch (error) {
+      window.location.href = "/";
+    } catch (error: any) {
       setSubmitError(
         error instanceof Error
           ? error.message
@@ -316,11 +432,13 @@ export default function SignUp() {
           confirmPassword: formData.confirmPassword,
         }}
         errors={stepOneErrors}
+        submitError={submitError}
         isNextDisabled={
           !formData.email.trim() ||
           !formData.password.trim() ||
           !formData.confirmPassword.trim()
         }
+        isGoogleLoading={isGoogleLoading}
         onChange={(fields) => {
           updateFormData(fields);
           setStepOneErrors((prev) => ({
@@ -330,8 +448,10 @@ export default function SignUp() {
               {},
             ),
           }));
+          setSubmitError("");
         }}
         onNext={handleStepOneSubmit}
+        onGoogleClick={handleStepOneGoogle}
       />
     );
   }

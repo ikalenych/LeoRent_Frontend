@@ -4,6 +4,7 @@ import { AuthCard } from "./AuthCard";
 import { StepBadge } from "./StepBadge";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
+import { ErrorAlert } from "../ui/ErrorAlert";
 import { SecurityBlock } from "./SecurityBlock";
 import { PrivacyPolicyModal } from "./PrivacyPolicyModal";
 import type { StepThreeErrors } from "../../pages/SignUp";
@@ -24,6 +25,22 @@ interface SignUpStepThreeProps {
   }) => void;
   onBack: () => void;
   onSubmit: () => void;
+}
+
+function formatPhoneValue(value: string) {
+  const digits = value.replace(/\D/g, "");
+
+  if (!digits) return "+380";
+
+  if (digits.startsWith("380")) {
+    return `+${digits.slice(0, 12)}`;
+  }
+
+  if (digits.startsWith("0")) {
+    return `+38${digits.slice(0, 10)}`;
+  }
+
+  return `+380${digits.slice(0, 9)}`;
 }
 
 export function SignUpStepThree({
@@ -56,6 +73,9 @@ export function SignUpStepThree({
         </p>
 
         <form className="w-full" onSubmit={handleSubmit}>
+          {submitError ? (
+            <ErrorAlert message={submitError} className="mb-4" />
+          ) : null}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Input
               label="Ім'я"
@@ -90,13 +110,16 @@ export function SignUpStepThree({
             autoComplete="tel"
             value={values.phone}
             error={errors.phone}
-            onChange={(e) => onChange({ phone: e.target.value })}
+            onFocus={() => {
+              if (!values.phone.trim()) {
+                onChange({ phone: "+380" });
+              }
+            }}
+            onChange={(e) => {
+              onChange({ phone: formatPhoneValue(e.target.value) });
+            }}
             icon={<Phone size={20} strokeWidth={1.75} />}
           />
-
-          {submitError ? (
-            <p className="mb-4 text-sm text-red-500">{submitError}</p>
-          ) : null}
 
           <div className="mb-6">
             <Button
@@ -124,7 +147,7 @@ export function SignUpStepThree({
           className="mx-auto mt-6 block font-display text-[15px] text-slate-400 transition hover:text-slate-600"
           disabled={isSubmitting}
         >
-          Повернутися на попередній крок
+          Назад
         </button>
       </AuthCard>
 

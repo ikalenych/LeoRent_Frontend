@@ -2,6 +2,7 @@ import { Building2, BriefcaseBusiness, Search } from "lucide-react";
 import { AuthCard } from "./AuthCard";
 import { StepBadge } from "./StepBadge";
 import { Button } from "../ui/Button";
+import { ErrorAlert } from "../ui/ErrorAlert";
 import { RoleCard } from "./RoleCard";
 import type { UserRole } from "../../pages/SignUp";
 
@@ -46,7 +47,7 @@ export function SignUpStepTwo({
           <div className="mb-10 grid grid-cols-1 gap-5 md:grid-cols-3">
             <RoleCard
               title="Я Власник"
-              description="Здаю власну квартиру"
+              description="Хочу здавати житло"
               icon={<Building2 size={30} strokeWidth={2} />}
               selected={selectedRole === "owner"}
               onClick={() => onSelectRole("owner")}
@@ -54,7 +55,7 @@ export function SignUpStepTwo({
 
             <RoleCard
               title="Я Рієлтор"
-              description="Працюю з об'єктами клієнтів"
+              description="Працюю з оголошеннями та клієнтами"
               icon={<BriefcaseBusiness size={30} strokeWidth={2} />}
               selected={selectedRole === "realtor"}
               onClick={() => onSelectRole("realtor")}
@@ -62,18 +63,14 @@ export function SignUpStepTwo({
 
             <RoleCard
               title="Я Орендар"
-              description="Шукаю квартиру"
+              description="Шукаю житло для оренди"
               icon={<Search size={30} strokeWidth={2} />}
               selected={selectedRole === "tenant"}
               onClick={() => onSelectRole("tenant")}
             />
           </div>
 
-          {error ? (
-            <p className="mb-6 text-center font-display text-[14px] text-red-500">
-              {error}
-            </p>
-          ) : null}
+          {error ? <ErrorAlert message={error} className="mb-6" /> : null}
 
           <div className="mx-auto flex max-w-105 flex-col items-center">
             <Button
@@ -91,7 +88,7 @@ export function SignUpStepTwo({
               onClick={onBack}
               className="mt-6 font-display text-[15px] text-slate-400 transition hover:text-slate-600"
             >
-              Повернутися на попередній крок
+              Назад
             </button>
           </div>
         </form>
