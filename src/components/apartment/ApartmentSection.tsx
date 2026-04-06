@@ -3,6 +3,7 @@ import { MOCK_USERS } from "../../constants/mockUsers";
 import { ApartmentGallery } from "./ApartmentGallery";
 import { ApartmentInfo } from "./ApartmentInfo";
 import { ApartmentOwnerCard } from "./ApartmentOwnerCard";
+import { ApartmentMap } from "./ApartmentMap";
 
 interface Props {
   id: string;
@@ -35,6 +36,7 @@ export function ApartmentSection({ id }: Props) {
             district={apartment.district}
             details={apartment.details}
           />
+          <ApartmentMap className="mt-6" location={apartment.location} />
         </div>
 
         <div className="lg:w-[280px] shrink-0">
