@@ -19,6 +19,7 @@ export type ApartmentDetailsMap = {
 
 export interface ApartmentCardProps {
   id: string;
+  ownerId: string;
   title: string;
   description?: string;
   location: string;
