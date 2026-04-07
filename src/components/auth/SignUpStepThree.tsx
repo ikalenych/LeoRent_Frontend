@@ -4,6 +4,7 @@ import { AuthCard } from "./AuthCard";
 import { StepBadge } from "./StepBadge";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
+import { ErrorAlert } from "../ui/ErrorAlert";
 import { SecurityBlock } from "./SecurityBlock";
 import { PrivacyPolicyModal } from "./PrivacyPolicyModal";
 import type { StepThreeErrors } from "../../pages/SignUp";
@@ -24,6 +25,26 @@ interface SignUpStepThreeProps {
   }) => void;
   onBack: () => void;
   onSubmit: () => void;
+}
+
+function formatPhoneValue(value: string) {
+  const digits = value.replace(/\D/g, "");
+
+  if (!digits) return "+380";
+
+  if (digits.startsWith("380")) {
+    return `+${digits.slice(0, 12)}`;
+  }
+
+  if (digits.startsWith("0")) {
+    return `+380${digits.slice(1, 10)}`;
+  }
+
+  if (digits.startsWith("38")) {
+    return `+${digits.slice(0, 12)}`;
+  }
+
+  return `+380${digits.slice(0, 9)}`;
 }
 
 export function SignUpStepThree({
@@ -56,6 +77,9 @@ export function SignUpStepThree({
         </p>
 
         <form className="w-full" onSubmit={handleSubmit}>
+          {submitError ? (
+            <ErrorAlert message={submitError} className="mb-4" />
+          ) : null}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Input
               label="Ім'я"
@@ -88,15 +112,27 @@ export function SignUpStepThree({
             type="tel"
             placeholder="+380 XX XXX XX XX"
             autoComplete="tel"
-            value={values.phone}
+            value={values.phone || "+380"}
             error={errors.phone}
-            onChange={(e) => onChange({ phone: e.target.value })}
+            onChange={(e) => {
+              const nextValue = e.target.value;
+
+              if (!nextValue || nextValue === "+") {
+                onChange({ phone: "+380" });
+                return;
+              }
+
+              const formatted = formatPhoneValue(nextValue);
+
+              if (formatted.length < 4) {
+                onChange({ phone: "+380" });
+                return;
+              }
+
+              onChange({ phone: formatted });
+            }}
             icon={<Phone size={20} strokeWidth={1.75} />}
           />
-
-          {submitError ? (
-            <p className="mb-4 text-sm text-red-500">{submitError}</p>
-          ) : null}
 
           <div className="mb-6">
             <Button
@@ -124,7 +160,7 @@ export function SignUpStepThree({
           className="mx-auto mt-6 block font-display text-[15px] text-slate-400 transition hover:text-slate-600"
           disabled={isSubmitting}
         >
-          Повернутися на попередній крок
+          Назад
         </button>
       </AuthCard>
 

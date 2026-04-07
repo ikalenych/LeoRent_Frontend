@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import { Button } from "../../ui/Button";
 
@@ -61,8 +62,14 @@ function SelectDropdown({
         </svg>
       </button>
 
-      {open && (
-        <div className="absolute top-full left-0 mt-2 w-52 bg-white/25 backdrop-blur-md border border-white/30 rounded-xl shadow-2xl py-1.5 z-9999">
+      <div
+        className={`absolute top-full left-0 mt-2 w-52 bg-white md:bg-white/25 md:backdrop-blur-md border border-gray-200 md:border-white/30 rounded-xl shadow-2xl z-[9999] overflow-hidden transition-all duration-300 ease-out ${
+          open
+            ? "opacity-100 max-h-64 translate-y-0 pointer-events-auto"
+            : "opacity-0 max-h-0 -translate-y-2 pointer-events-none"
+        }`}
+      >
+        <div className="py-1.5">
           {options.map((opt) => (
             <button
               key={opt}
@@ -71,20 +78,23 @@ function SelectDropdown({
                 onChange(opt);
                 setOpen(false);
               }}
-              className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-white/20 ${
-                value === opt ? "text-white font-semibold" : "text-white/80"
+              className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-gray-50 md:hover:bg-white/20 ${
+                value === opt
+                  ? "text-emerald-500 md:text-white font-semibold"
+                  : "text-gray-700 md:text-white/80"
               }`}
             >
               {opt}
             </button>
           ))}
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
 export function HeroSearchBar() {
+  const navigate = useNavigate();
   const [district, setDistrict] = useState("Всі райони");
   const [priceFrom, setPriceFrom] = useState("");
   const [priceTo, setPriceTo] = useState("");
@@ -93,6 +103,35 @@ export function HeroSearchBar() {
 
   const handlePrice = (val: string, set: (v: string) => void) => {
     if (val.length <= 6) set(val);
+  };
+
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+
+    if (district !== "Всі райони") {
+      params.set("district", district);
+    }
+
+    if (priceFrom) {
+      params.set("priceMin", priceFrom);
+    }
+
+    if (priceTo) {
+      params.set("priceMax", priceTo);
+    }
+
+    if (room !== "Будь-яка") {
+      const roomNum = room === "4+" ? "4" : room;
+      params.set("rooms", roomNum);
+    }
+    if (duration === "Подобова") {
+      params.set("rentType", "Daily");
+    } else {
+      params.set("rentType", "Default");
+    }
+
+    const queryString = params.toString();
+    navigate(`/listings${queryString ? "?" + queryString : ""}`);
   };
 
   const fieldClass =
@@ -109,7 +148,7 @@ export function HeroSearchBar() {
         />
       </div>
 
-      <div className={`${fieldClass}`}>
+      <div className={fieldClass}>
         <span className="text-[10px] font-semibold uppercase tracking-widest text-white/60 px-4 pt-3">
           Ціна від/до
         </span>
@@ -159,7 +198,11 @@ export function HeroSearchBar() {
       </div>
 
       <div className="p-2 flex items-center">
-        <Button size="lg" className="w-full md:w-auto rounded-xl gap-2 px-10">
+        <Button
+          size="lg"
+          className="w-full md:w-auto rounded-xl gap-2 px-10"
+          onClick={handleSearch}
+        >
           <Search size={18} />
           <span className="hidden sm:inline">Шукати</span>
         </Button>

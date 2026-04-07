@@ -11,14 +11,18 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^0.0.0-insiders.f302fce",
+    "leaflet": "^1.9.4",
+    "firebase": "^12.11.0",
     "lucide-react": "^0.577.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.13.1",
     "tailwindcss": "^0.0.0-insiders.f302fce"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@types/leaflet": "^1.9.21",
     "@types/node": "^24.12.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
