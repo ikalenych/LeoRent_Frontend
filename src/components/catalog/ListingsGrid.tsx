@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import ApartmentCard from "../ApartmentCard";
 import Pagination from "./Pagination";
 import type { ApartmentCardProps } from "../../types/apartment";

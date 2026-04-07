@@ -36,7 +36,7 @@ export function ApartmentSection({ id }: Props) {
             district={apartment.district}
             details={apartment.details}
           />
-          <ApartmentMap className="mt-6" location={apartment.location} />
+          <ApartmentMap location={apartment.location} />
         </div>
 
         <div className="lg:w-[280px] shrink-0">
