@@ -8,12 +8,16 @@ import {
   DEFAULT_FILTERS,
   type FilterState,
 } from "./ListingsFilters";
-import { MOCK_APARTMENTS } from "../../constants/mockApartments";
+import { fetchApartments } from "../../api/apartments";
+import { mapPreviewToCard } from "../../mappers/apartment.mapper";
 import {
   filterApartments,
   sortApartments,
   type SortOption,
 } from "../../utils/apartments";
+import type { ApartmentCardProps } from "../../types/apartment";
+
+type Apt = Omit<ApartmentCardProps, "isLiked" | "onLike">;
 
 function filtersToParams(f: FilterState, sort: SortOption): URLSearchParams {
   const p = new URLSearchParams();
@@ -59,9 +63,11 @@ function paramsToFilters(p: URLSearchParams): {
 export function ListingsSection() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initial = paramsToFilters(searchParams);
+
+  const [allApartments, setAllApartments] = useState<Apt[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
   const [isMultiColumn, setIsMultiColumn] = useState(window.innerWidth >= 1200);
-
   const [appliedFilters, setAppliedFilters] = useState<FilterState>(
     initial.filters,
   );
@@ -70,18 +76,24 @@ export function ListingsSection() {
     initial.filters,
   );
 
+  useEffect(() => {
+    fetchApartments()
+      .then((data) => setAllApartments(data.map(mapPreviewToCard)))
+      .finally(() => setLoadingData(false));
+  }, []);
+
   const isDirty =
     JSON.stringify(pendingFilters) !== JSON.stringify(appliedFilters);
 
   const previewCount = useMemo(
-    () => filterApartments(MOCK_APARTMENTS, pendingFilters).length,
-    [pendingFilters],
+    () => filterApartments(allApartments, pendingFilters).length,
+    [allApartments, pendingFilters],
   );
 
   const apartments = useMemo(() => {
-    const filtered = filterApartments(MOCK_APARTMENTS, appliedFilters);
+    const filtered = filterApartments(allApartments, appliedFilters);
     return sortApartments(filtered, sort);
-  }, [appliedFilters, sort]);
+  }, [allApartments, appliedFilters, sort]);
 
   useEffect(() => {
     const params = filtersToParams(appliedFilters, sort);
@@ -98,7 +110,6 @@ export function ListingsSection() {
   }, []);
 
   const handleApply = () => setAppliedFilters(pendingFilters);
-
   const handleReset = () => {
     setPendingFilters(DEFAULT_FILTERS);
     setAppliedFilters(DEFAULT_FILTERS);
@@ -122,27 +133,39 @@ export function ListingsSection() {
         onSortChange={setSort}
       />
 
-      {!isDesktop && <MobileFilters {...filterProps} />}
-
-      {isDesktop ? (
-        <div className="flex gap-6 items-start">
-          <DesktopFilters {...filterProps} />
-          <div className="flex-1 min-w-0">
-            <ListingsGrid
-              key={JSON.stringify(appliedFilters) + sort}
-              apartments={apartments}
-              perPage={6}
-              isMultiColumn={isMultiColumn}
+      {loadingData ? (
+        <div className="flex flex-wrap gap-4 mt-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={i}
+              className="w-72 h-80 rounded-2xl bg-gray-200 animate-pulse"
             />
-          </div>
+          ))}
         </div>
       ) : (
-        <ListingsGrid
-          key={JSON.stringify(appliedFilters) + sort + "m"}
-          apartments={apartments}
-          perPage={6}
-          isMultiColumn={false}
-        />
+        <>
+          {!isDesktop && <MobileFilters {...filterProps} />}
+          {isDesktop ? (
+            <div className="flex gap-6 items-start">
+              <DesktopFilters {...filterProps} />
+              <div className="flex-1 min-w-0">
+                <ListingsGrid
+                  key={JSON.stringify(appliedFilters) + sort}
+                  apartments={apartments}
+                  perPage={6}
+                  isMultiColumn={isMultiColumn}
+                />
+              </div>
+            </div>
+          ) : (
+            <ListingsGrid
+              key={JSON.stringify(appliedFilters) + sort + "m"}
+              apartments={apartments}
+              perPage={6}
+              isMultiColumn={false}
+            />
+          )}
+        </>
       )}
     </section>
   );

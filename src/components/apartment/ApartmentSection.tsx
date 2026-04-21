@@ -1,21 +1,55 @@
-import { MOCK_APARTMENTS } from "../../constants/mockApartments";
-import { MOCK_USERS } from "../../constants/mockUsers";
+import { useEffect, useState } from "react";
+import { fetchApartmentById, fetchUserById } from "../../api/apartments";
+import { mapFullToCard, mapBackendUser } from "../../mappers/apartment.mapper";
 import { ApartmentGallery } from "./ApartmentGallery";
 import { ApartmentInfo } from "./ApartmentInfo";
 import { ApartmentOwnerCard } from "./ApartmentOwnerCard";
 import { ApartmentMap } from "./ApartmentMap";
+import type { ApartmentCardProps } from "../../types/apartment";
+import type { MockUser } from "../../types/user";
 
 interface Props {
   id: string;
 }
 
 export function ApartmentSection({ id }: Props) {
-  const apartment = MOCK_APARTMENTS.find((a) => a.id === id);
-  const owner = apartment
-    ? (MOCK_USERS.find((u) => u.id === apartment.ownerId) ?? null)
-    : null;
+  const [apartment, setApartment] = useState<Omit<
+    ApartmentCardProps,
+    "isLiked" | "onLike"
+  > | null>(null);
+  const [owner, setOwner] = useState<MockUser | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  if (!apartment) {
+  useEffect(() => {
+    setLoading(true);
+    setError(false);
+    fetchApartmentById(id)
+      .then(async (data) => {
+        const mapped = mapFullToCard(data);
+        setApartment(mapped);
+        try {
+          const user = await fetchUserById(data.owner);
+          setOwner(mapBackendUser(user));
+        } catch {
+          setOwner(null);
+        }
+      })
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-6 animate-pulse">
+        <div className="w-full h-72 rounded-2xl bg-gray-200" />
+        <div className="h-6 w-1/2 bg-gray-200 rounded" />
+        <div className="h-4 w-1/3 bg-gray-200 rounded" />
+      </div>
+    );
+  }
+
+  if (error || !apartment) {
     return (
       <div className="py-20 text-center text-text-description font-display">
         Квартиру не знайдено
@@ -26,7 +60,6 @@ export function ApartmentSection({ id }: Props) {
   return (
     <div className="flex flex-col gap-6">
       <ApartmentGallery photos={apartment.photos} title={apartment.title} />
-
       <div className="flex flex-col lg:flex-row gap-8">
         <div className="flex-1 min-w-0">
           <ApartmentInfo
@@ -38,7 +71,6 @@ export function ApartmentSection({ id }: Props) {
           />
           <ApartmentMap location={apartment.location} />
         </div>
-
         <div className="lg:w-[280px] shrink-0">
           <ApartmentOwnerCard
             apartmentId={apartment.id}
