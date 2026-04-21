@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Phone, ShieldCheck, Heart, Check } from "lucide-react";
 import { useLiked } from "../../context/LikedContext";
+import { UserAvatar } from "../ui/UserAvatar";
 import type { MockUser } from "../../types/user";
 
 interface Props {
@@ -33,7 +34,6 @@ export function ApartmentOwnerCard({
 
   return (
     <div className="rounded-2xl border border-gray-100 shadow-sm bg-white p-5 flex flex-col gap-4 font-display sticky top-24">
-      {/* Ціна + лайк */}
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs text-text-description mb-0.5">
@@ -63,14 +63,9 @@ export function ApartmentOwnerCard({
 
       <div className="border-t border-gray-100" />
 
-      {/* Юзер */}
       {owner && (
         <div className="flex items-center gap-3">
-          <img
-            src={owner.avatarUrl ?? `https://i.pravatar.cc/40?u=${owner.id}`}
-            alt={owner.username}
-            className="w-10 h-10 rounded-full object-cover"
-          />
+          <UserAvatar username={owner.username} size="md" />
           <div>
             <p className="text-text-title font-semibold text-sm">
               {owner.username}
@@ -83,7 +78,6 @@ export function ApartmentOwnerCard({
         </div>
       )}
 
-      {/* Телефон */}
       {owner && (
         <div className="relative">
           <div
@@ -96,7 +90,6 @@ export function ApartmentOwnerCard({
             <Check className="w-3 h-3" />
             Скопійовано
           </div>
-
           <button
             onClick={handlePhoneClick}
             className={`w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-medium transition-all duration-200 border ${
