@@ -113,25 +113,22 @@ export function HeroSearchBar() {
     }
 
     if (priceFrom) {
-      params.set("priceMin", priceFrom);
+      params.set("price_min", priceFrom);
     }
 
     if (priceTo) {
-      params.set("priceMax", priceTo);
+      params.set("price_max", priceTo);
     }
 
     if (room !== "Будь-яка") {
-      const roomNum = room === "4+" ? "4" : room;
-      params.set("rooms", roomNum);
-    }
-    if (duration === "Подобова") {
-      params.set("rentType", "Daily");
-    } else {
-      params.set("rentType", "Default");
+      params.set("rooms", room === "4+" ? "4" : room);
     }
 
-    const queryString = params.toString();
-    navigate(`/listings${queryString ? "?" + queryString : ""}`);
+    params.set("rent_type", duration === "Подобова" ? "Daily" : "Default");
+    params.set("sort", "newest");
+    params.set("page", "1");
+
+    navigate(`/listings?${params.toString()}`);
   };
 
   const fieldClass =

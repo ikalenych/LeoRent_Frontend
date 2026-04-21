@@ -14,9 +14,8 @@ export function ApartmentsSection() {
   useEffect(() => {
     fetchApartments()
       .then((data) => {
-        const mapped = data.map(mapPreviewToCard);
-        // Беремо останні 4 як було з моком
-        setApartments(mapped.slice(-4));
+        const mapped = data.apartments.map(mapPreviewToCard); // ← .apartments
+        setApartments(mapped.slice(0, 4)); // ← перші 4, не останні
       })
       .finally(() => setLoading(false));
   }, []);

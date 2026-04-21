@@ -15,7 +15,8 @@ export function mapRentType(type: string): RentType {
 }
 
 export function mapUserType(type: string): UserType {
-  if (type === "AGENT") return "Rieltor";
+  const normalized = type.replace("UserType.", "").toUpperCase();
+  if (normalized === "AGENT") return "Rieltor";
   return "Owner";
 }
 
@@ -24,7 +25,7 @@ export function mapPreviewToCard(
 ): Omit<ApartmentCardProps, "isLiked" | "onLike"> {
   return {
     id: apt.id_,
-    ownerId: apt.owner,
+    ownerId: apt.owner_type, // ← було apt.owner
     title: apt.title,
     location: apt.location,
     district: apt.district,
@@ -34,8 +35,8 @@ export function mapPreviewToCard(
     floor: apt.floor,
     floorInHouse: apt.floor_in_house,
     rentType: mapRentType(apt.rent_type),
-    ownerType: "Owner",
-    photos: apt.main_picture ? [{ url: apt.main_picture }] : [],
+    ownerType: mapUserType(apt.owner_type), // ← тепер реально маппиться
+    photos: apt.picture ? [{ url: apt.picture }] : [],
   };
 }
 
@@ -44,11 +45,11 @@ export function mapFullToCard(
 ): Omit<ApartmentCardProps, "isLiked" | "onLike"> {
   const photos = apt.pictures?.length
     ? apt.pictures.map((p) => ({ url: p.url }))
-    : (apt.main_picture ?? []).map((url) => ({ url }));
+    : [];
 
   return {
     id: apt.id_,
-    ownerId: apt.owner,
+    ownerId: apt.owner_type, // ← було apt.owner
     title: apt.title,
     description: apt.description ?? undefined,
     location: apt.location,
@@ -59,7 +60,7 @@ export function mapFullToCard(
     floor: apt.floor,
     floorInHouse: apt.floor_in_house,
     rentType: mapRentType(apt.rent_type),
-    ownerType: "Owner",
+    ownerType: mapUserType(apt.owner_type), // ← було "Owner" hardcoded
     details: (apt.details as ApartmentCardProps["details"]) ?? undefined,
     photos,
   };

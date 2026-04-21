@@ -320,11 +320,8 @@ export default function SignUp() {
     try {
       const credential = await signInWithPopup(auth, googleProvider);
       const firebaseUser = credential.user;
-      const providerCredential =
-        GoogleAuthProvider.credentialFromResult(credential);
 
-      const idToken =
-        providerCredential?.idToken || (await firebaseUser.getIdToken());
+      const idToken = await firebaseUser.getIdToken();
 
       localStorage.setItem("token", idToken);
 
