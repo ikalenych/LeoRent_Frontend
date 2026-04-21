@@ -6,6 +6,7 @@ import ApartmentPage from "./pages/ApartmentPage.tsx";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import CreateListing from "./pages/CreateListing";
+import Profile from "./pages/Profile";
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="/listing" element={<CreateListing />} />
         <Route path="/listings" element={<Listings />} />
         <Route path="/listings/:id" element={<ApartmentPage />} />
+        <Route path="/profile" element={<Profile />} />
       </Route>
     </Routes>
   );
