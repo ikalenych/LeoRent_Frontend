@@ -164,7 +164,7 @@ export default function Login() {
         );
       }
 
-      window.location.href = "/";
+      // window.location.href = "/";
     } catch (error) {
       setSubmitError(
         error instanceof Error ? error.message : "Сталася помилка при вході",
@@ -198,7 +198,7 @@ export default function Login() {
         }),
       );
 
-      window.location.href = "/";
+      //  window.location.href = "/";
     } catch (error: any) {
       if (
         error?.code === "auth/popup-closed-by-user" ||

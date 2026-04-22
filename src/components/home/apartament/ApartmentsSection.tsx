@@ -1,9 +1,24 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ApartmentCard from "../../ApartmentCard";
-import { MOCK_APARTMENTS } from "../../../constants/mockApartments";
+import { fetchApartments } from "../../../api/apartments";
+import { mapPreviewToCard } from "../../../mappers/apartment.mapper";
+import type { ApartmentCardProps } from "../../../types/apartment";
+
+type Apt = Omit<ApartmentCardProps, "isLiked" | "onLike">;
 
 export function ApartmentsSection() {
-  const latest = [...MOCK_APARTMENTS].slice(-4);
+  const [apartments, setApartments] = useState<Apt[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchApartments()
+      .then((data) => {
+        const mapped = data.apartments.map(mapPreviewToCard); // ← .apartments
+        setApartments(mapped.slice(0, 4)); // ← перші 4, не останні
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <section className="bg-page py-10 px-6">
@@ -25,11 +40,22 @@ export function ApartmentsSection() {
           </Link>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-4 sm:gap-5 lg:gap-6">
-          {latest.map((apt) => (
-            <ApartmentCard key={apt.id} {...apt} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-5 lg:gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="w-72 h-80 rounded-2xl bg-gray-200 animate-pulse"
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-5 lg:gap-6">
+            {apartments.map((apt) => (
+              <ApartmentCard key={apt.id} {...apt} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
