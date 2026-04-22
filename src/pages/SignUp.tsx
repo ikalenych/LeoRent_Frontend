@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { signInWithPopup } from "firebase/auth";
 import { SignUpStepOne } from "../components/auth/SignUpStepOne";
 import { SignUpStepTwo } from "../components/auth/SignUpStepTwo";
 import { SignUpStepThree } from "../components/auth/SignUpStepThree";
