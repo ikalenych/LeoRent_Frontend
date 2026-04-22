@@ -12,7 +12,7 @@ import { mapPreviewToCard } from "../../mappers/apartment.mapper";
 import type { SortOption } from "../../utils/apartments";
 import type { ApartmentCardProps } from "../../types/apartment";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL as string;
 const PAGE_SIZE = 6;
 
 type Apt = Omit<ApartmentCardProps, "isLiked" | "onLike">;
