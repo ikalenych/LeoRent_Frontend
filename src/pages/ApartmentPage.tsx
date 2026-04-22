@@ -7,7 +7,7 @@ export default function ApartmentPage() {
   const navigate = useNavigate();
 
   return (
-    <main className="max-w-[1350px] mx-auto px-4 sm:px-6 lg:px-10 py-8 font-display">
+    <main className="max-w-[1350px] mx-auto px-4 sm:px-6 lg:px-10 py-3 font-display">
       <button
         onClick={() => navigate(-1)}
         className="flex items-center gap-1.5 text-sm text-text-description hover:text-text-title transition-colors mb-6 cursor-pointer"

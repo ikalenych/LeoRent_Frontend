@@ -23,7 +23,7 @@ export interface BackendApartmentPreview {
   location: string;
   district: string;
   is_liked_by_current_user: boolean;
-  owner_type: string; // ← було owner з alias
+  owner_type: string;
   picture: string | null;
 }
 
@@ -42,7 +42,6 @@ export interface BackendApartmentFull {
   district: string;
   cost: number;
   rent_type: string;
-  is_deleted: boolean;
   rooms: number;
   square: number;
   floor: number;
@@ -72,8 +71,6 @@ export interface BackendUser {
   last_name: string | null;
 }
 
-// fetchApartments більше не використовується в ListingsSection,
-// але залишаємо для інших місць якщо треба
 export async function fetchApartments(): Promise<BackendApartmentListResponse> {
   const res = await fetch(`${API_URL}/apartment/`, {
     headers: { ...authHeaders() },
@@ -89,14 +86,6 @@ export async function fetchApartmentById(
     headers: { ...authHeaders() },
   });
   if (!res.ok) throw new Error("Квартиру не знайдено");
-  return res.json();
-}
-
-export async function fetchUserById(id: string): Promise<BackendUser> {
-  const res = await fetch(`${API_URL}/users/${id}`, {
-    headers: { ...authHeaders() },
-  });
-  if (!res.ok) throw new Error("Користувача не знайдено");
   return res.json();
 }
 
