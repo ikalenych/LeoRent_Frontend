@@ -326,7 +326,6 @@ export function MobileFilters({
   onApply,
   totalResults,
   isDirty,
-  isLoadingPreview,
 }: FilterProps) {
   const [openChip, setOpenChip] = useState<ChipKey | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
