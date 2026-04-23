@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import ListingsHeader from "./ListingsHeader";
 import ListingsGrid from "./ListingsGrid";
 import {
@@ -118,6 +119,7 @@ function buildApiParams(
 }
 
 export function ListingsSection() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const initialFilters = filtersFromParams(searchParams);
@@ -260,7 +262,15 @@ export function ListingsSection() {
   };
 
   return (
-    <section className="max-w-[1600px] mx-auto px-6 lg:px-10 py-8">
+    <section className="max-w-[1600px] mx-auto px-6 lg:px-10 py-4">
+      <button
+        onClick={() => navigate("/")}
+        className="flex items-center gap-1.5 text-sm text-text-description hover:text-text-title transition-colors mb-2 cursor-pointer"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Назад
+      </button>
+
       <ListingsHeader
         total={total}
         sort={sort}
