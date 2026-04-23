@@ -79,7 +79,7 @@ export default function Header() {
               Головна
             </NavLink>
             <NavLink
-              to="/rent"
+              to="/listings"
               onClick={() => setMenuOpen(false)}
               className={navLinkClass}
             >
