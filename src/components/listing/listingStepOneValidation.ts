@@ -101,7 +101,7 @@ export function validateListingStepOne(
     errors.price = "Вкажіть коректну ціну";
   }
 
-  if (!formData.minTerm.trim()) {
+  if (formData.rentType !== "Подобова оренда" && !formData.minTerm.trim()) {
     errors.minTerm = "Оберіть мінімальний термін";
   }
 

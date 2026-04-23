@@ -1,6 +1,7 @@
-import { Plus, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Plus, ArrowRight, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import ConfirmModal from "./ConfirmModal";
 
 export interface OwnerListingRow {
@@ -14,32 +15,60 @@ export interface OwnerListingRow {
 
 interface OwnerListingsSectionProps {
   listings: OwnerListingRow[];
+  onDeleteSuccess?: (id: string) => void;
 }
 
 export default function OwnerListingsSection({
   listings,
+  onDeleteSuccess,
 }: OwnerListingsSectionProps) {
   const navigate = useNavigate();
-  const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
+  const { getFreshToken } = useAuth();
+
   const [pendingDelete, setPendingDelete] = useState<OwnerListingRow | null>(
     null,
   );
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const displayItems = useMemo(
-    () => listings.filter((item) => !deletedIds.has(item.id)),
-    [listings, deletedIds],
-  );
-
-  function handleConfirmDelete() {
+  async function handleConfirmDelete() {
     if (!pendingDelete) return;
 
-    setDeletedIds((prev) => new Set([...prev, pendingDelete.id]));
-    setPendingDelete(null);
+    try {
+      setIsDeleting(true);
+
+      const freshToken = await getFreshToken();
+      if (!freshToken) {
+        alert("Увійдіть в акаунт.");
+        return;
+      }
+
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${baseUrl}/apartment/${pendingDelete.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${freshToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Delete apartment failed:", errorText);
+        throw new Error("Failed to delete apartment");
+      }
+
+      onDeleteSuccess?.(pendingDelete.id);
+      setPendingDelete(null);
+    } catch (error) {
+      console.error("Failed to delete apartment:", error);
+      alert("Не вдалося видалити оголошення.");
+    } finally {
+      setIsDeleting(false);
+    }
   }
 
   return (
     <section className="mt-14">
-      {displayItems.length ? (
+      {listings.length ? (
         <>
           <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
@@ -53,7 +82,7 @@ export default function OwnerListingsSection({
 
             <button
               type="button"
-              onClick={() => navigate("/create-listing")}
+              onClick={() => navigate("/listing")}
               className="inline-flex h-12 items-center justify-center gap-2 self-start rounded-2xl bg-primary px-6 text-[15px] font-medium text-white shadow-[0_10px_25px_rgba(22,155,98,0.24)] transition hover:opacity-90 cursor-pointer"
             >
               <Plus className="h-4 w-4" />
@@ -62,7 +91,7 @@ export default function OwnerListingsSection({
           </div>
 
           <div className="overflow-hidden rounded-3xl bg-white shadow-[0_8px_30px_rgba(15,23,42,0.05)]">
-            <div className="hidden grid-cols-[2.6fr_1.2fr_1fr_0.5fr] gap-4 border-b border-slate-100 px-6 py-4 text-[12px] font-semibold uppercase tracking-wide text-slate-400 lg:grid">
+            <div className="hidden grid-cols-[2.6fr_1.2fr_1fr_1fr] gap-4 border-b border-slate-100 px-6 py-4 text-[12px] font-semibold uppercase tracking-wide text-slate-400 lg:grid">
               <span>Об'єкт</span>
               <span>Район</span>
               <span>Ціна</span>
@@ -70,10 +99,10 @@ export default function OwnerListingsSection({
             </div>
 
             <div className="divide-y divide-slate-100">
-              {displayItems.map((listing) => (
+              {listings.map((listing) => (
                 <div
                   key={listing.id}
-                  className="grid gap-4 px-6 py-5 lg:grid-cols-[2.6fr_1.2fr_1fr_0.5fr] lg:items-center"
+                  className="grid gap-4 px-6 py-5 lg:grid-cols-[2.6fr_1.2fr_1fr_1fr] lg:items-center"
                 >
                   <div className="flex items-center gap-4">
                     <img
@@ -105,11 +134,20 @@ export default function OwnerListingsSection({
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
+                      onClick={() => navigate(`/listings/${listing.id}`)}
+                      className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 cursor-pointer"
+                    >
+                      Переглянути
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+
+                    <button
+                      type="button"
                       onClick={() => setPendingDelete(listing)}
-                      className="text-slate-500 transition hover:text-red-500 cursor-pointer"
-                      aria-label="Видалити оголошення"
+                      className="inline-flex items-center gap-2 rounded-xl border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 cursor-pointer"
                     >
                       <Trash2 className="h-4 w-4" />
+                      Видалити
                     </button>
                   </div>
                 </div>
@@ -128,7 +166,7 @@ export default function OwnerListingsSection({
 
           <button
             type="button"
-            onClick={() => navigate("/create-listing")}
+            onClick={() => navigate("/listing")}
             className="mt-6 inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-primary px-6 text-[15px] font-medium text-white shadow-[0_10px_25px_rgba(22,155,98,0.24)] transition hover:opacity-90 cursor-pointer"
           >
             <Plus className="h-4 w-4" />
@@ -140,12 +178,14 @@ export default function OwnerListingsSection({
       <ConfirmModal
         isOpen={Boolean(pendingDelete)}
         title="Видалити оголошення?"
-        description="Після підтвердження оголошення буде видалене зі списку."
-        confirmText="Видалити"
+        description="Оголошення буде деактивоване та зникне з вашого списку."
+        confirmText={isDeleting ? "Видалення..." : "Видалити"}
         cancelText="Скасувати"
         confirmVariant="danger"
         onConfirm={handleConfirmDelete}
-        onCancel={() => setPendingDelete(null)}
+        onCancel={() => {
+          if (!isDeleting) setPendingDelete(null);
+        }}
       />
     </section>
   );

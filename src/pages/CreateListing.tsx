@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { CreateListingProgress } from "../components/listing/CreateListingProgress";
 import { CreateListingStepOne } from "../components/listing/CreateListingStepOne";
 import { CreateListingStepTwo } from "../components/listing/CreateListingStepTwo";
@@ -58,6 +60,14 @@ type CreateListingDraft = {
   photos: PhotoItem[];
 };
 
+type StoredUser = {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  name?: string;
+  fullName?: string;
+};
+
 const CREATE_LISTING_DRAFT_KEY = "create-listing-draft";
 
 const initialStepOneData: ListingStepOneData = {
@@ -65,7 +75,7 @@ const initialStepOneData: ListingStepOneData = {
   district: "",
   title: "",
   description: "",
-  rentType: "Подобово",
+  rentType: "Подобова оренда",
   rooms: "",
   area: "",
   floor: "",
@@ -89,18 +99,40 @@ const initialVerification: VerificationState = {
 
 function getInitialDraft(): CreateListingDraft | null {
   if (typeof window === "undefined") return null;
-
   try {
     const rawDraft = window.localStorage.getItem(CREATE_LISTING_DRAFT_KEY);
     if (!rawDraft) return null;
-
     return JSON.parse(rawDraft) as CreateListingDraft;
   } catch {
     return null;
   }
 }
 
+function getStoredUser(): StoredUser | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const rawUser = window.localStorage.getItem("user");
+    if (!rawUser) return null;
+    return JSON.parse(rawUser) as StoredUser;
+  } catch {
+    return null;
+  }
+}
+
+function getUserDisplayName(user: StoredUser | null) {
+  if (!user) return "";
+  if (user.fullName?.trim()) return user.fullName.trim();
+  if (user.name?.trim()) return user.name.trim();
+  const fullName = `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim();
+  if (fullName) return fullName;
+  if (user.first_name?.trim()) return user.first_name.trim();
+  if (user.email?.trim()) return user.email.split("@")[0];
+  return "";
+}
+
 export default function CreateListing() {
+  const { getFreshToken } = useAuth();
+  const navigate = useNavigate();
   const initialDraft = useMemo(() => getInitialDraft(), []);
 
   const [currentStep, setCurrentStep] = useState<ListingStep>(
@@ -113,14 +145,15 @@ export default function CreateListing() {
     );
   const [photos, setPhotos] = useState<PhotoItem[]>(initialDraft?.photos ?? []);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [stepOneData, setStepOneData] = useState<ListingStepOneData>(
     initialDraft?.stepOneData ?? initialStepOneData,
   );
-
   const [verification, setVerification] = useState<VerificationState>(
     initialDraft?.verification ?? initialVerification,
   );
+
+  const storedUser = useMemo(() => getStoredUser(), []);
+  const ownerDisplayName = getUserDisplayName(storedUser);
 
   useEffect(() => {
     try {
@@ -144,7 +177,6 @@ export default function CreateListing() {
           preview: photo.preview,
         })),
       };
-
       window.localStorage.setItem(
         CREATE_LISTING_DRAFT_KEY,
         JSON.stringify(draft),
@@ -166,24 +198,15 @@ export default function CreateListing() {
   }
 
   function goToNextStep() {
-    setCurrentStep((prev) => {
-      if (prev === 3) return 3;
-      return (prev + 1) as ListingStep;
-    });
+    setCurrentStep((prev) => (prev === 3 ? 3 : ((prev + 1) as ListingStep)));
   }
 
   function goToPreviousStep() {
-    setCurrentStep((prev) => {
-      if (prev === 1) return 1;
-      return (prev - 1) as ListingStep;
-    });
+    setCurrentStep((prev) => (prev === 1 ? 1 : ((prev - 1) as ListingStep)));
   }
 
   function handleStepOneChange(data: Partial<ListingStepOneData>) {
-    setStepOneData((prev) => ({
-      ...prev,
-      ...data,
-    }));
+    setStepOneData((prev) => ({ ...prev, ...data }));
   }
 
   async function handleVerifyDocument(file: File) {
@@ -193,7 +216,6 @@ export default function CreateListing() {
       size: file.size,
       type: file.type,
     });
-
     setVerification({
       status: "verifying",
       address: "",
@@ -206,10 +228,39 @@ export default function CreateListing() {
 
     await new Promise((resolve) => setTimeout(resolve, 2200));
 
+    const listingAddress = stepOneData.address.trim();
+    const ownerName = ownerDisplayName.trim();
+
+    if (!listingAddress) {
+      setVerification({
+        status: "error",
+        address: "",
+        ownerName,
+        addressMatched: false,
+        ownerMatched: Boolean(ownerName),
+        documentAnalyzed: false,
+        errorMessage: "Спочатку вкажіть адресу об'єкта на першому кроці.",
+      });
+      return;
+    }
+
+    if (!ownerName) {
+      setVerification({
+        status: "error",
+        address: listingAddress,
+        ownerName: "",
+        addressMatched: true,
+        ownerMatched: false,
+        documentAnalyzed: false,
+        errorMessage: "Не вдалося отримати ім'я користувача з профілю.",
+      });
+      return;
+    }
+
     setVerification({
       status: "success",
-      address: "вул. Шевченка 12",
-      ownerName: "Іваненко І. В.",
+      address: listingAddress,
+      ownerName,
       addressMatched: true,
       ownerMatched: true,
       documentAnalyzed: true,
@@ -224,78 +275,178 @@ export default function CreateListing() {
   }
 
   async function handlePublishListing() {
+    const freshToken = await getFreshToken();
+
+    if (!freshToken) {
+      alert("Будь ласка, увійдіть в акаунт, щоб опублікувати оголошення.");
+      return;
+    }
     if (!stepOneData.title.trim()) {
       alert("Вкажіть назву оголошення.");
       return;
     }
-
     if (!stepOneData.price.trim()) {
       alert("Вкажіть вартість.");
       return;
     }
-
     if (photos.length === 0) {
       alert("Додайте хоча б одне фото.");
       return;
     }
 
-    const payload = {
-      listing: {
-        address: stepOneData.address.trim(),
-        district: stepOneData.district,
-        title: stepOneData.title.trim(),
-        description: stepOneData.description.trim(),
-        rentType: stepOneData.rentType,
-        rooms: stepOneData.rooms,
-        area: stepOneData.area ? Number(stepOneData.area) : null,
-        floor: stepOneData.floor ? Number(stepOneData.floor) : null,
-        totalFloors: stepOneData.totalFloors
-          ? Number(stepOneData.totalFloors)
-          : null,
-        buildingType: stepOneData.buildingType,
-        repair: stepOneData.repair,
-        price: Number(stepOneData.price),
-        minTerm: stepOneData.minTerm,
-        amenities: stepOneData.amenities,
-      },
-      verification: {
-        status: verification.status,
-        address: verification.address,
-        ownerName: verification.ownerName,
-        addressMatched: verification.addressMatched,
-        ownerMatched: verification.ownerMatched,
-        documentAnalyzed: verification.documentAnalyzed,
-        hasDocument: Boolean(selectedFile || selectedDocumentMeta),
-        document: selectedFile
-          ? {
-              name: selectedFile.name,
-              size: selectedFile.size,
-              type: selectedFile.type,
-            }
-          : selectedDocumentMeta,
-      },
-      photos: photos.map((photo, index) => ({
-        id: photo.id,
-        name: photo.fileName,
-        size: photo.fileSize,
-        type: photo.fileType,
-        isPrimary: index === 0,
-      })),
-      createdAt: new Date().toISOString(),
+    const photosWithFiles = photos.filter((photo) => photo.file !== null);
+    if (photosWithFiles.length === 0) {
+      alert(
+        "Файли фото не збереглись. Будь ласка, додайте фото знову перед публікацією.",
+      );
+      return;
+    }
+
+    const rentTypeMapped =
+      stepOneData.rentType === "Подобова оренда" ? "DAILY" : "DEFAULT";
+
+    const detailsPayload: Record<string, boolean> = {
+      wifi: false,
+      elevator: false,
+      washing_machine: false,
+      parking: false,
+      furniture: false,
+      animals: false,
+      balcony: false,
+      conditioner: false,
+    };
+    for (const amenity of stepOneData.amenities) {
+      if (amenity in detailsPayload) {
+        detailsPayload[amenity] = true;
+      }
+    }
+
+    const buildingTypeMap: Record<string, string> = {
+      Панельний: "panel",
+      Монолітний: "monolith",
+      Цегляний: "brick",
+      "Дерев'яний": "wood",
+    };
+    const repairTypeMap: Record<string, string> = {
+      Євроремонт: "euro",
+      Косметичний: "cosmetic",
+      "Без ремонту": "none",
+      Дизайнерський: "design",
+    };
+
+    const apiPayload = {
+      title: stepOneData.title.trim(),
+      description: stepOneData.description.trim(),
+      location: stepOneData.address.trim(),
+      district: stepOneData.district,
+      cost: Number(stepOneData.price),
+      rent_type: rentTypeMapped,
+      rooms: stepOneData.rooms ? parseInt(stepOneData.rooms) : 0,
+      square: stepOneData.area ? Number(stepOneData.area) : 0,
+      floor: stepOneData.floor ? Number(stepOneData.floor) : 0,
+      floor_in_house: stepOneData.totalFloors
+        ? Number(stepOneData.totalFloors)
+        : 0,
+      type_:
+        buildingTypeMap[stepOneData.buildingType] ?? stepOneData.buildingType,
+      renovation_type: repairTypeMap[stepOneData.repair] ?? stepOneData.repair,
+      details: detailsPayload,
     };
 
     try {
       setIsSubmitting(true);
+      const baseUrl = import.meta.env.VITE_API_URL;
 
-      console.log("CREATE_LISTING_PAYLOAD", payload);
+      const response = await fetch(`${baseUrl}/apartment/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${freshToken}`,
+        },
+        body: JSON.stringify(apiPayload),
+      });
 
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      if (!response.ok) {
+        const errorBody = await response.text();
+        console.error("CreateListing error response:", errorBody);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("Apartment created:", result);
+      const apartmentId = result.id_ ?? result.id;
+
+      const uploadedUrls: string[] = [];
+
+      for (const photo of photosWithFiles) {
+        const formData = new FormData();
+        formData.append("file", photo.file!);
+
+        const safeFileName = photo.file!.name.replace(/\s+/g, "-");
+        const fileKey = `apartments/${apartmentId}/${crypto.randomUUID()}-${safeFileName}`;
+
+        const uploadResponse = await fetch(
+          `${baseUrl}/photos/upload-from-file?file_key=${encodeURIComponent(fileKey)}`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${freshToken}`,
+            },
+            body: formData,
+          },
+        );
+
+        if (!uploadResponse.ok) {
+          console.error(`Failed to upload file ${photo.fileName}`);
+          continue;
+        }
+
+        const uploadResult = await uploadResponse.json();
+
+        if (uploadResult.success && uploadResult.public_url) {
+          uploadedUrls.push(uploadResult.public_url);
+          console.log(
+            `Uploaded ${photo.fileName} → ${uploadResult.public_url}`,
+          );
+        } else {
+          console.error(
+            `Upload failed for ${photo.fileName}:`,
+            uploadResult.error,
+          );
+        }
+      }
+
+      if (uploadedUrls.length > 0) {
+        const picturesPayload = uploadedUrls.map((url) => ({
+          source: url,
+          metadata: {},
+        }));
+
+        const photosResponse = await fetch(
+          `${baseUrl}/apartment/${apartmentId}/pictures`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${freshToken}`,
+            },
+            body: JSON.stringify({ pictures: picturesPayload }),
+          },
+        );
+
+        if (!photosResponse.ok) {
+          const photosError = await photosResponse.text();
+          console.error("Failed to attach pictures:", photosError);
+        } else {
+          console.log("Pictures attached successfully");
+        }
+      }
 
       clearDraft();
-      alert("Оголошення успішно підготовлено до публікації.");
+      navigate(`/listings/${apartmentId}`);
     } catch (error) {
       console.error("Failed to publish listing:", error);
-      alert("Не вдалося підготувати оголошення до публікації.");
+      alert("Не вдалося опублікувати оголошення. Спробуйте ще раз.");
     } finally {
       setIsSubmitting(false);
     }

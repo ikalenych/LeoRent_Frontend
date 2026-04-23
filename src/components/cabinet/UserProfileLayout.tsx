@@ -16,12 +16,14 @@ interface UserProfileLayoutProps {
   };
   savedListings: ProfileListingCardData[];
   ownerListings?: OwnerListingRow[];
+  onOwnerListingDeleted?: (id: string) => void;
 }
 
 export default function UserProfileLayout({
   user,
   savedListings,
   ownerListings = [],
+  onOwnerListingDeleted,
 }: UserProfileLayoutProps) {
   const isOwnerView = user.role === "Owner" || user.role === "Rieltor";
 
@@ -37,7 +39,12 @@ export default function UserProfileLayout({
 
         <SavedListingsSection listings={savedListings} />
 
-        {isOwnerView ? <OwnerListingsSection listings={ownerListings} /> : null}
+        {isOwnerView ? (
+          <OwnerListingsSection
+            listings={ownerListings}
+            onDeleteSuccess={onOwnerListingDeleted}
+          />
+        ) : null}
       </main>
     </div>
   );

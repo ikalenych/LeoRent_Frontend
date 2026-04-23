@@ -3,6 +3,7 @@ import ConfirmModal from "./ConfirmModal";
 import ProfileSavedListingCard, {
   type ProfileListingCardData,
 } from "./ProfileSavedListingCard";
+import { useAuth } from "../../context/AuthContext";
 
 interface SavedListingsSectionProps {
   listings: ProfileListingCardData[];
@@ -15,10 +16,12 @@ const LOAD_MORE_STEP = 3;
 export default function SavedListingsSection({
   listings,
 }: SavedListingsSectionProps) {
+  const { getFreshToken } = useAuth();
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
   const [pendingRemove, setPendingRemove] =
     useState<ProfileListingCardData | null>(null);
+  const [isRemoving, setIsRemoving] = useState(false);
 
   const displayItems = useMemo(
     () => listings.filter((item) => !deletedIds.has(item.id)),
@@ -44,14 +47,46 @@ export default function SavedListingsSection({
     );
   }
 
-  function handleConfirmRemove() {
+  async function handleConfirmRemove() {
     if (!pendingRemove) return;
 
-    setDeletedIds((prev) => new Set([...prev, pendingRemove.id]));
-    setPendingRemove(null);
-    setVisibleCount((prev) =>
-      Math.min(prev, Math.max(displayItems.length - 1, INITIAL_VISIBLE)),
-    );
+    try {
+      setIsRemoving(true);
+
+      const freshToken = await getFreshToken();
+      if (!freshToken) {
+        alert("Увійдіть в акаунт.");
+        return;
+      }
+
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/apartment/${pendingRemove.id}/like`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${freshToken}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Toggle like failed:", errorText);
+        throw new Error("Failed to toggle like");
+      }
+
+      setDeletedIds((prev) => new Set([...prev, pendingRemove.id]));
+      setVisibleCount((prev) =>
+        Math.min(prev, Math.max(displayItems.length - 1, INITIAL_VISIBLE)),
+      );
+      setPendingRemove(null);
+    } catch (error) {
+      console.error("Failed to remove saved listing:", error);
+      alert("Не вдалося видалити оголошення зі збережених.");
+    } finally {
+      setIsRemoving(false);
+    }
   }
 
   return (
@@ -107,11 +142,13 @@ export default function SavedListingsSection({
         isOpen={Boolean(pendingRemove)}
         title="Видалити зі збережених?"
         description="Оголошення буде прибране зі списку збережених."
-        confirmText="Видалити"
+        confirmText={isRemoving ? "Видалення..." : "Видалити"}
         cancelText="Скасувати"
         confirmVariant="danger"
         onConfirm={handleConfirmRemove}
-        onCancel={() => setPendingRemove(null)}
+        onCancel={() => {
+          if (!isRemoving) setPendingRemove(null);
+        }}
       />
     </section>
   );
