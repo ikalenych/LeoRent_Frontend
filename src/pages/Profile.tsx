@@ -1,5 +1,13 @@
+import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import UserProfileLayout from "../components/cabinet/UserProfileLayout";
+import { useLiked } from "../context/LikedContext";
+import ProfileHeader from "../components/cabinet/ProfileHeader";
+import OwnerListingsSection, {
+  type OwnerListingRow,
+} from "../components/cabinet/OwnerListingsSection";
+import ApartmentCard from "../components/ApartmentCard";
+import ConfirmModal from "../components/cabinet/ConfirmModal";
+import type { ApartmentCardProps } from "../types/apartment";
 
 type BackendUser = {
   id: string;
@@ -52,66 +60,39 @@ function mapUserTypeToRoleLabel(userType?: "OWNER" | "AGENT" | "DEFAULT") {
 export default function Profile() {
   const authUser = useAuth().user;
   const storedUser = authUser as BackendUser | null;
+  const { likedApartmentsRaw, isLikedLoading, toggleLike } = useLiked();
 
-  const savedListings = [
-    {
-      id: "1",
-      title: "2-к квартира, Центр",
-      location: "вул. Галицька",
-      district: "Центр",
-      cost: 22500,
-      rooms: 2,
-      square: 54,
-      floor: 3,
-      floorInHouse: 5,
-      ownerType: "Owner" as const,
-      rentType: "Monthly" as const,
-      photos: [
-        {
-          url: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200&auto=format&fit=crop",
-        },
-      ],
-    },
-    {
-      id: "2",
-      title: "1-к квартира",
-      location: "пр. Чорновола",
-      district: "Замарстинів",
-      cost: 18000,
-      rooms: 1,
-      square: 38,
-      floor: 8,
-      floorInHouse: 12,
-      ownerType: "Rieltor" as const,
-      rentType: "Monthly" as const,
-      photos: [
-        {
-          url: "https://images.unsplash.com/photo-1494526585095-c41746248156?q=80&w=1200&auto=format&fit=crop",
-        },
-      ],
-    },
-  ];
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [selectedListingId, setSelectedListingId] = useState<string | null>(
+    null,
+  );
 
-  const ownerListings = [
-    {
-      id: "101",
-      title: "2-к Квартира, Центр",
-      address: "вул. Галицька, 14",
-      district: "Галицький",
-      price: 22500,
-      image:
-        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=400&auto=format&fit=crop",
-    },
-    {
-      id: "102",
-      title: "1-к Квартира, Стрийська",
-      address: "вул. Стрийська, 45",
-      district: "Сихівський",
-      price: 14000,
-      image:
-        "https://images.unsplash.com/photo-1484154218962-a197022b5858?q=80&w=400&auto=format&fit=crop",
-    },
-  ];
+  const savedListings: ApartmentCardProps[] = likedApartmentsRaw.map(
+    (item) => ({
+      id: String(item.id_),
+      ownerId: String(item.owner_id ?? ""),
+      title: item.title ?? "Без назви",
+      description: item.description ?? "",
+      location: item.location ?? "Невідома локація",
+      district: item.district ?? "",
+      cost: Number(item.cost ?? 0),
+      rooms: Number(item.rooms ?? 0),
+      square: Number(item.square ?? 0),
+      floor: Number(item.floor ?? 0),
+      floorInHouse: Number(item.floor_in_house ?? 0),
+      ownerType: item.owner_type === "Rieltor" ? "Rieltor" : "Owner",
+      rentType: item.rent_type === "Daily" ? "Daily" : "Default",
+      photos:
+        Array.isArray(item.pictures) && item.pictures.length > 0
+          ? item.pictures.map((pic) => ({
+              url: pic.url ?? "/placeholder.jpg",
+            }))
+          : [{ url: "/placeholder.jpg" }],
+      details: {},
+    }),
+  );
+
+  const ownerListings: OwnerListingRow[] = [];
 
   const user = {
     fullName: getFullName(storedUser),
@@ -120,11 +101,79 @@ export default function Profile() {
     roleLabel: mapUserTypeToRoleLabel(storedUser?.user_type),
   };
 
+  const isOwnerView = user.role === "Owner" || user.role === "Rieltor";
+
+  const handleCardLikeClick = (id: string) => {
+    setSelectedListingId(id);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmUnlike = async () => {
+    if (!selectedListingId) return;
+
+    await toggleLike(selectedListingId);
+    setConfirmOpen(false);
+    setSelectedListingId(null);
+  };
+
+  const handleCancelUnlike = () => {
+    setConfirmOpen(false);
+    setSelectedListingId(null);
+  };
+
   return (
-    <UserProfileLayout
-      user={user}
-      savedListings={savedListings}
-      ownerListings={ownerListings}
-    />
+    <div className="bg-[#F7F8FC]">
+      <main className="mx-auto max-w-310 px-4 py-8 sm:px-6 lg:px-8">
+        <ProfileHeader
+          fullName={user.fullName}
+          email={user.email}
+          role={user.role}
+          roleLabel={user.roleLabel}
+        />
+
+        <section className="mt-8">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-2xl font-semibold text-slate-900">
+              Збережені оголошення
+            </h2>
+          </div>
+
+          {isLikedLoading ? (
+            <div className="rounded-2xl bg-white p-6 text-slate-500 shadow-sm">
+              Завантаження...
+            </div>
+          ) : savedListings.length === 0 ? (
+            <div className="rounded-2xl bg-white p-6 text-slate-500 shadow-sm">
+              У вас ще немає збережених оголошень.
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-5">
+              {savedListings.map((listing) => (
+                <div key={listing.id}>
+                  <ApartmentCard
+                    {...listing}
+                    onLike={handleCardLikeClick}
+                    isLiked
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {isOwnerView ? <OwnerListingsSection listings={ownerListings} /> : null}
+      </main>
+
+      <ConfirmModal
+        isOpen={confirmOpen}
+        title="Прибрати зі збережених?"
+        description="Оголошення буде видалене з вашого списку збережених."
+        confirmText="Прибрати"
+        cancelText="Скасувати"
+        confirmVariant="danger"
+        onConfirm={handleConfirmUnlike}
+        onCancel={handleCancelUnlike}
+      />
+    </div>
   );
 }

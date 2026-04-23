@@ -3,6 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { useLiked } from "../context/LikedContext";
 import type { ApartmentCardProps } from "../types/apartment";
 
+type ApartmentCardViewProps = ApartmentCardProps & {
+  isLiked?: boolean;
+  onLike?: (id: string) => void;
+};
+
 export default function ApartmentCard({
   id,
   title,
@@ -16,7 +21,9 @@ export default function ApartmentCard({
   photos,
   ownerType,
   rentType,
-}: Omit<ApartmentCardProps, "isLiked" | "onLike">) {
+  isLiked,
+  onLike,
+}: ApartmentCardViewProps) {
   const navigate = useNavigate();
   const { liked, toggleLike } = useLiked();
 
@@ -24,12 +31,25 @@ export default function ApartmentCard({
   const isDaily = rentType === "Daily";
   const formattedCost = cost.toLocaleString("uk-UA");
 
+  const likedState = typeof isLiked === "boolean" ? isLiked : liked.has(id);
+
+  const handleLikeClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (onLike) {
+      onLike(id);
+      return;
+    }
+
+    void toggleLike(id);
+  };
+
   return (
     <div
       onClick={() => navigate(`/listings/${id}`)}
       className="group bg-surface rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 w-[300px] h-[360px] min-[480px]:w-[390px] min-[480px]:h-[420px] font-display cursor-pointer shrink-0"
     >
-      {/* Фото */}
       <div className="relative w-full h-[190px] min-[480px]:h-[256px] overflow-hidden">
         <img
           src={photos[0]?.url ?? "/placeholder.jpg"}
@@ -50,17 +70,13 @@ export default function ApartmentCard({
         </span>
 
         <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleLike(id);
-          }}
+          onClick={handleLikeClick}
           className="absolute bottom-3 right-3 bg-white/80 backdrop-blur-sm hover:bg-white p-2 rounded-full transition-colors duration-150 shadow-sm cursor-pointer"
           aria-label="Додати до обраного"
         >
           <Heart
             className={`w-4 h-4 transition-colors ${
-              liked.has(id)
+              likedState
                 ? "fill-rose-500 text-rose-500"
                 : "text-text-description"
             }`}
@@ -68,7 +84,6 @@ export default function ApartmentCard({
         </button>
       </div>
 
-      {/* Текст */}
       <div className="px-4 py-3 flex flex-col justify-between h-[170px] min-[480px]:h-[164px]">
         <div className="flex flex-col gap-1">
           <span
