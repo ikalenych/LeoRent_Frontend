@@ -44,24 +44,24 @@ export default function ProfileSavedListingCard({
   return (
     <div
       onClick={() => navigate(`/listings/${id}`)}
-      className="group bg-surface rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 w-75 h-90 min-[480px]:w-97.5 min-[480px]:h-105 font-display cursor-pointer shrink-0"
+      className="group mx-auto h-90 w-full max-w-75 shrink-0 overflow-hidden rounded-2xl bg-surface font-display shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg min-[480px]:h-105 min-[480px]:max-w-97.5"
     >
-      <div className="relative w-full h-47.5 min-[480px]:h-64 overflow-hidden">
+      <div className="relative h-47.5 w-full overflow-hidden min-[480px]:h-64">
         <img
           src={photos[0]?.url ?? "/placeholder.jpg"}
           alt={title}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
 
         <span
-          className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold text-white ${
+          className={`absolute top-3 left-3 rounded-full px-3 py-1 text-xs font-semibold text-white ${
             isRealtor ? "bg-realtor" : "bg-primary"
           }`}
         >
           {isRealtor ? "Рієлтор" : "Власник"}
         </span>
 
-        <span className="absolute top-3 right-3 bg-white text-text-title font-semibold text-sm px-3 py-1 rounded-full shadow-sm">
+        <span className="absolute top-3 right-3 rounded-full bg-white px-3 py-1 text-sm font-semibold text-text-title shadow-sm">
           {formattedCost} ₴
         </span>
 
@@ -84,17 +84,17 @@ export default function ProfileSavedListingCard({
               rentType,
             });
           }}
-          className="absolute bottom-3 right-3 bg-white/80 backdrop-blur-sm hover:bg-white p-2 rounded-full transition-colors duration-150 shadow-sm cursor-pointer"
+          className="absolute right-3 bottom-3 cursor-pointer rounded-full bg-white/80 p-2 shadow-sm backdrop-blur-sm transition-colors duration-150 hover:bg-white"
           aria-label="Видалити зі збережених"
         >
-          <Heart className="w-4 h-4 fill-rose-500 text-rose-500" />
+          <Heart className="h-4 w-4 fill-rose-500 text-rose-500" />
         </button>
       </div>
 
-      <div className="px-4 py-3 flex flex-col justify-between h-42.5 min-[480px]:h-41">
+      <div className="flex h-42.5 flex-col justify-between px-4 py-3 min-[480px]:h-41">
         <div className="flex flex-col gap-1">
           <span
-            className={`self-start text-xs font-medium px-2.5 py-0.5 rounded-full leading-5 ${
+            className={`self-start rounded-full px-2.5 py-0.5 text-xs leading-5 font-medium ${
               isDaily
                 ? "bg-emerald-100 text-emerald-700"
                 : "bg-gray-100 text-gray-500"
@@ -103,12 +103,12 @@ export default function ProfileSavedListingCard({
             {isDaily ? "Подобово" : "Тривала оренда"}
           </span>
 
-          <h3 className="text-text-title group-hover:text-primary font-semibold text-base leading-snug line-clamp-1 transition-colors duration-200">
+          <h3 className="line-clamp-1 text-base leading-snug font-semibold text-text-title transition-colors duration-200 group-hover:text-primary">
             {title}
           </h3>
 
-          <div className="flex items-center gap-1 text-text-description text-sm">
-            <MapPin className="w-3.5 h-3.5 shrink-0" />
+          <div className="flex items-center gap-1 text-sm text-text-description">
+            <MapPin className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate">
               {location}
               {district ? `, ${district}` : ""}
@@ -116,19 +116,19 @@ export default function ProfileSavedListingCard({
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-text-description text-sm border-t border-gray-100 pt-3">
+        <div className="flex items-center gap-4 border-t border-gray-100 pt-3 text-sm text-text-description">
           <span className="flex items-center gap-1.5">
-            <BedDouble className="w-4 h-4" />
+            <BedDouble className="h-4 w-4" />
             {rooms} к.
           </span>
 
           <span className="flex items-center gap-1.5">
-            <LayoutGrid className="w-4 h-4" />
+            <LayoutGrid className="h-4 w-4" />
             {square} м²
           </span>
 
           <span className="flex items-center gap-1.5">
-            <Layers className="w-4 h-4" />
+            <Layers className="h-4 w-4" />
             {floor}/{floorInHouse} пов.
           </span>
         </div>

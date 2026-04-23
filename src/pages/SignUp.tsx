@@ -1,16 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  signInWithPopup,
-  GoogleAuthProvider,
-  createUserWithEmailAndPassword,
-  updateProfile,
-} from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { SignUpStepOne } from "../components/auth/SignUpStepOne";
 import { SignUpStepTwo } from "../components/auth/SignUpStepTwo";
 import { SignUpStepThree } from "../components/auth/SignUpStepThree";
 import { useAuth } from "../context/AuthContext";
-import { auth, googleProvider } from "../lib/firebase";
+import { auth } from "../lib/firebase";
 import { firebaseAuthRequest } from "../lib/auth-api";
 import { mapApiErrorToUaMessage } from "../lib/error-messages";
 
@@ -225,7 +220,6 @@ export default function SignUp() {
   const [stepTwoError, setStepTwoError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   useEffect(() => {
     const persistedData: PersistedSignUpState = {
@@ -320,45 +314,6 @@ export default function SignUp() {
 
     setStepThreeErrors(errors);
     return Object.keys(errors).length === 0;
-  }
-
-  async function handleStepOneGoogle() {
-    setSubmitError("");
-    setIsGoogleLoading(true);
-
-    try {
-      const credential = await signInWithPopup(auth, googleProvider);
-      const firebaseUser = credential.user;
-
-      const idToken = await firebaseUser.getIdToken();
-
-      localStorage.setItem("token", idToken);
-
-      updateFormData({
-        email: firebaseUser.email || "",
-        password: "google-auth",
-        confirmPassword: "google-auth",
-        firstName: firebaseUser.displayName?.split(" ")[0] || "",
-        lastName: firebaseUser.displayName?.split(" ").slice(1).join(" ") || "",
-      });
-
-      nextStep();
-    } catch (error: any) {
-      if (
-        error?.code === "auth/popup-closed-by-user" ||
-        error?.message?.includes("popup-closed-by-user")
-      ) {
-        setSubmitError("");
-      } else {
-        setSubmitError(
-          error instanceof Error
-            ? error.message
-            : "Сталася помилка при вході через Google",
-        );
-      }
-    } finally {
-      setIsGoogleLoading(false);
-    }
   }
 
   function handleStepOneSubmit() {
@@ -458,7 +413,6 @@ export default function SignUp() {
           !formData.password.trim() ||
           !formData.confirmPassword.trim()
         }
-        isGoogleLoading={isGoogleLoading}
         onChange={(fields) => {
           updateFormData(fields);
           setStepOneErrors((prev) => ({
@@ -471,7 +425,6 @@ export default function SignUp() {
           setSubmitError("");
         }}
         onNext={handleStepOneSubmit}
-        onGoogleClick={handleStepOneGoogle}
       />
     );
   }
