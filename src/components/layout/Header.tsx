@@ -80,7 +80,7 @@ export default function Header() {
               <NavLink to="/listings" className={navLinkClass}>
                 Оренда
               </NavLink>
-              <NavLink to="/services" className={navLinkClass}>
+              <NavLink to="/about-us" className={navLinkClass}>
                 Про нас
               </NavLink>
             </nav>
@@ -169,7 +169,7 @@ export default function Header() {
             </NavLink>
 
             <NavLink
-              to="/services"
+              to="/about-us"
               onClick={() => setMenuOpen(false)}
               className={navLinkClass}
             >

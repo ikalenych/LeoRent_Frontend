@@ -113,7 +113,7 @@ export function ApartmentMap({ location }: Props) {
         </MapContainer>
 
         {loading && (
-          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-[1]">
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-[100]">
             <span className="text-text-description text-sm">
               Завантаження карти...
             </span>
@@ -121,7 +121,7 @@ export function ApartmentMap({ location }: Props) {
         )}
 
         {error && !loading && (
-          <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-[1] gap-2">
+          <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-[] gap-2">
             <MapPin className="w-6 h-6 text-gray-300" />
             <p className="text-text-description text-sm font-medium">
               Локацію не вдалось знайти

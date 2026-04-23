@@ -1,10 +1,9 @@
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
-
+const API_URL = import.meta.env.VITE_API_URL as string;
 function getToken() {
   return localStorage.getItem("token");
 }
 
-function authHeaders(): HeadersInit {
+export function authHeaders(): HeadersInit {
   const token = getToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
@@ -23,8 +22,15 @@ export interface BackendApartmentPreview {
   location: string;
   district: string;
   is_liked_by_current_user: boolean;
-  owner: string;
-  main_picture: string | null;
+  owner_type: string;
+  picture: string | null;
+}
+
+export interface BackendApartmentListResponse {
+  apartments: BackendApartmentPreview[];
+  total: number;
+  page: number;
+  page_size: number;
 }
 
 export interface BackendApartmentFull {
@@ -35,17 +41,22 @@ export interface BackendApartmentFull {
   district: string;
   cost: number;
   rent_type: string;
-  is_deleted: boolean;
   rooms: number;
   square: number;
   floor: number;
   floor_in_house: number;
-  details: Record<string, number> | null;
+  details: Record<string, unknown> | null;
   type_: string;
   renovation_type: string;
-  main_picture: string[];
   pictures: { id_: string; url: string; metadata_: unknown }[];
-  owner: string;
+  owner_type: string;
+  owner_info: {
+    first_name: string | null;
+    last_name: string | null;
+    phone_number: string | null;
+    email: string;
+    is_verified: boolean;
+  };
 }
 
 export interface BackendUser {
@@ -59,13 +70,12 @@ export interface BackendUser {
   last_name: string | null;
 }
 
-export async function fetchApartments(): Promise<BackendApartmentPreview[]> {
+export async function fetchApartments(): Promise<BackendApartmentListResponse> {
   const res = await fetch(`${API_URL}/apartment/`, {
     headers: { ...authHeaders() },
   });
   if (!res.ok) throw new Error("Не вдалося завантажити оголошення");
-  const data = await res.json();
-  return data.apartments ?? [];
+  return res.json();
 }
 
 export async function fetchApartmentById(
@@ -75,14 +85,6 @@ export async function fetchApartmentById(
     headers: { ...authHeaders() },
   });
   if (!res.ok) throw new Error("Квартиру не знайдено");
-  return res.json();
-}
-
-export async function fetchUserById(id: string): Promise<BackendUser> {
-  const res = await fetch(`${API_URL}/users/${id}`, {
-    headers: { ...authHeaders() },
-  });
-  if (!res.ok) throw new Error("Користувача не знайдено");
   return res.json();
 }
 

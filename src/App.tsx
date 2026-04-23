@@ -8,6 +8,7 @@ import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import CreateListing from "./pages/CreateListing";
 import Profile from "./pages/Profile";
+import AboutUs from "./pages/AboutUs.tsx";
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/about-us" element={<AboutUs />} />
       </Route>
     </Routes>
   );
