@@ -13,33 +13,39 @@ interface UserProfileLayoutProps {
     email: string;
     role: UserRole;
     roleLabel: string;
-    avatarUrl?: string;
   };
   savedListings: ProfileListingCardData[];
   ownerListings?: OwnerListingRow[];
+  onOwnerListingDeleted?: (id: string) => void;
 }
 
 export default function UserProfileLayout({
   user,
   savedListings,
   ownerListings = [],
+  onOwnerListingDeleted,
 }: UserProfileLayoutProps) {
   const isOwnerView = user.role === "Owner" || user.role === "Rieltor";
 
   return (
-    <main className="min-h-screen bg-[#F7F8FC]">
-      <div className="mx-auto max-w-310 px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+    <div className="bg-[#F7F8FC]">
+      <main className="mx-auto max-w-310 px-4 py-8 sm:px-6 lg:px-8">
         <ProfileHeader
           fullName={user.fullName}
           email={user.email}
+          role={user.role}
           roleLabel={user.roleLabel}
-          avatarUrl={user.avatarUrl}
         />
 
         <SavedListingsSection listings={savedListings} />
 
-        {isOwnerView ? <OwnerListingsSection listings={ownerListings} /> : null}
-      </div>
-    </main>
+        {isOwnerView ? (
+          <OwnerListingsSection
+            listings={ownerListings}
+            onDeleteSuccess={onOwnerListingDeleted}
+          />
+        ) : null}
+      </main>
+    </div>
   );
 }

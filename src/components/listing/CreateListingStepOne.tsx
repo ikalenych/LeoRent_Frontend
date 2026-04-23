@@ -53,6 +53,8 @@ export function CreateListingStepOne({
 }: CreateListingStepOneProps) {
   const [errors, setErrors] = useState<ListingStepOneErrors>({});
 
+  const isDailyRent = formData.rentType === "Подобова оренда";
+
   function toggleAmenity(value: string) {
     const nextAmenities = formData.amenities.includes(value)
       ? formData.amenities.filter((item) => item !== value)
@@ -75,7 +77,7 @@ export function CreateListingStepOne({
       buildingType: formData.buildingType,
       repair: formData.repair,
       price: formData.price,
-      minTerm: formData.minTerm,
+      minTerm: isDailyRent ? "" : formData.minTerm,
     });
 
     setErrors(validationErrors);
@@ -84,7 +86,7 @@ export function CreateListingStepOne({
       return;
     }
 
-    onNext?.();
+    onNext();
   }
 
   return (
@@ -110,7 +112,12 @@ export function CreateListingStepOne({
 
           <ListingRentTypeSwitch
             selectedRentType={formData.rentType}
-            setSelectedRentType={(value) => onChange({ rentType: value })}
+            setSelectedRentType={(value) =>
+              onChange({
+                rentType: value,
+                ...(value === "Подобова оренда" ? { minTerm: "" } : {}),
+              })
+            }
             rentTypeOptions={rentTypeOptions}
             error={errors.rentType}
           />
@@ -151,6 +158,8 @@ export function CreateListingStepOne({
             price={formData.price}
             setPrice={(value) => onChange({ price: value })}
             errors={errors}
+            priceLabel={isDailyRent ? "Ціна / день" : "Ціна / місяць"}
+            hideMinTerm={isDailyRent}
           />
 
           <div className="flex justify-end">

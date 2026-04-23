@@ -1,27 +1,25 @@
-import { useState } from "react";
 import ApartmentCard from "../ApartmentCard";
 import Pagination from "./Pagination";
 import type { ApartmentCardProps } from "../../types/apartment";
 
 interface ListingsGridProps {
   apartments: Omit<ApartmentCardProps, "isLiked" | "onLike">[];
-  perPage?: number;
   isMultiColumn?: boolean;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 }
 
 export default function ListingsGrid({
   apartments,
-  perPage = 6,
   isMultiColumn = false,
+  currentPage,
+  totalPages,
+  onPageChange,
 }: ListingsGridProps) {
-  const [page, setPage] = useState(1);
-
-  const totalPages = Math.ceil(apartments.length / perPage);
-  const paginated = apartments.slice((page - 1) * perPage, page * perPage);
-
   return (
     <div className="flex flex-col gap-6">
-      {paginated.length === 0 ? (
+      {apartments.length === 0 ? (
         <div className="py-20 text-center text-text-description font-display">
           Оголошень не знайдено. Спробуйте змінити фільтри.
         </div>
@@ -31,7 +29,7 @@ export default function ListingsGrid({
             isMultiColumn ? "grid-cols-2 2xl:grid-cols-3" : "grid-cols-1"
           }`}
         >
-          {paginated.map((apt) => (
+          {apartments.map((apt) => (
             <div key={apt.id} className="flex justify-center">
               <ApartmentCard {...apt} />
             </div>
@@ -40,7 +38,11 @@ export default function ListingsGrid({
       )}
 
       {totalPages > 1 && (
-        <Pagination current={page} total={totalPages} onChange={setPage} />
+        <Pagination
+          current={currentPage}
+          total={totalPages}
+          onChange={onPageChange}
+        />
       )}
     </div>
   );

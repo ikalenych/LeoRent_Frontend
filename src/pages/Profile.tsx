@@ -1,196 +1,263 @@
-import UserProfileLayout from "../components/cabinet/UserProfileLayout";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useLiked } from "../context/LikedContext";
+import ProfileHeader from "../components/cabinet/ProfileHeader";
+import OwnerListingsSection, {
+  type OwnerListingRow,
+} from "../components/cabinet/OwnerListingsSection";
+import ApartmentCard from "../components/ApartmentCard";
+import ConfirmModal from "../components/cabinet/ConfirmModal";
+import type { ApartmentCardProps } from "../types/apartment";
+
+type BackendUser = {
+  id: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  user_type?: "OWNER" | "AGENT" | "DEFAULT";
+  firebase_uid?: string;
+  is_verified?: boolean;
+};
+
+type BackendApartmentPicture = {
+  id_?: string;
+  url: string;
+  metadata?: Record<string, unknown>;
+};
+
+type BackendApartment = {
+  id_?: string;
+  id?: string;
+  title: string;
+  description?: string | null;
+  location: string;
+  district: string;
+  cost: number;
+  rent_type?: string;
+  is_deleted?: boolean;
+  rooms: number;
+  square: number;
+  floor: number;
+  floor_in_house: number;
+  owner_type?: string;
+  picture?: string | null;
+  pictures?: BackendApartmentPicture[];
+};
+
+type LikedApartmentsResponse = {
+  apartments?: BackendApartment[];
+};
+
+type MyApartmentsResponse = {
+  apartments?: BackendApartment[];
+  items?: BackendApartment[];
+};
+
+function getFullName(user: BackendUser | null) {
+  if (!user) return "Користувач";
+
+  const fullName = `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim();
+  if (fullName) return fullName;
+
+  if (user.first_name?.trim()) return user.first_name.trim();
+  if (user.email?.trim()) return user.email.split("@")[0];
+
+  return "Користувач";
+}
+
+function mapUserTypeToProfileRole(
+  userType?: "OWNER" | "AGENT" | "DEFAULT",
+): "Tenant" | "Owner" | "Rieltor" {
+  switch (userType) {
+    case "OWNER":
+      return "Owner";
+    case "AGENT":
+      return "Rieltor";
+    default:
+      return "Tenant";
+  }
+}
+
+function mapUserTypeToRoleLabel(userType?: "OWNER" | "AGENT" | "DEFAULT") {
+  switch (userType) {
+    case "OWNER":
+      return "Власник";
+    case "AGENT":
+      return "Рієлтор";
+    default:
+      return "Орендар";
+  }
+}
+
+function mapApartmentOwnerType(ownerType?: string): "Owner" | "Rieltor" {
+  return ownerType === "AGENT" || ownerType === "UserType.AGENT"
+    ? "Rieltor"
+    : "Owner";
+}
+
+function mapApartmentRentType(rentType?: string): "Monthly" | "Daily" {
+  return rentType === "DAILY" ? "Daily" : "Monthly";
+}
+
+function getApartmentImage(apartment: BackendApartment) {
+  if (apartment.pictures?.length) {
+    return apartment.pictures[0].url;
+  }
+
+  if (apartment.picture) {
+    return apartment.picture;
+  }
+
+  return "/placeholder.jpg";
+}
 
 export default function Profile() {
-  const savedListings = [
-    {
-      id: "1",
-      title: "2-к квартира, Центр",
-      location: "вул. Галицька",
-      district: "Центр",
-      cost: 22500,
-      rooms: 2,
-      square: 54,
-      floor: 3,
-      floorInHouse: 5,
-      ownerType: "Owner" as const,
-      rentType: "Monthly" as const,
-      photos: [
-        {
-          url: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200&auto=format&fit=crop",
-        },
-      ],
-    },
-    {
-      id: "2",
-      title: "1-к квартира",
-      location: "пр. Чорновола",
-      district: "Замарстинів",
-      cost: 18000,
-      rooms: 1,
-      square: 38,
-      floor: 8,
-      floorInHouse: 12,
-      ownerType: "Rieltor" as const,
-      rentType: "Monthly" as const,
-      photos: [
-        {
-          url: "https://images.unsplash.com/photo-1494526585095-c41746248156?q=80&w=1200&auto=format&fit=crop",
-        },
-      ],
-    },
-    {
-      id: "3",
-      title: "1-к квартира",
-      location: "вул. Коновальця",
-      district: "Франківський",
-      cost: 15500,
-      rooms: 1,
-      square: 42,
-      floor: 2,
-      floorInHouse: 4,
-      ownerType: "Owner" as const,
-      rentType: "Monthly" as const,
-      photos: [
-        {
-          url: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=1200&auto=format&fit=crop",
-        },
-      ],
-    },
-    {
-      id: "4",
-      title: "2-к квартира, Новобудова",
-      location: "вул. Наукова",
-      district: "Франківський",
-      cost: 21000,
-      rooms: 2,
-      square: 61,
-      floor: 6,
-      floorInHouse: 10,
-      ownerType: "Rieltor" as const,
-      rentType: "Monthly" as const,
-      photos: [
-        {
-          url: "https://images.unsplash.com/photo-1484154218962-a197022b5858?q=80&w=1200&auto=format&fit=crop",
-        },
-      ],
-    },
-    {
-      id: "5",
-      title: "1-к квартира біля парку",
-      location: "вул. Стрийська",
-      district: "Сихівський",
-      cost: 14000,
-      rooms: 1,
-      square: 35,
-      floor: 4,
-      floorInHouse: 9,
-      ownerType: "Owner" as const,
-      rentType: "Monthly" as const,
-      photos: [
-        {
-          url: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200&auto=format&fit=crop",
-        },
-      ],
-    },
-    {
-      id: "6",
-      title: "3-к квартира",
-      location: "вул. Зелена",
-      district: "Личаківський",
-      cost: 26000,
-      rooms: 3,
-      square: 74,
-      floor: 7,
-      floorInHouse: 9,
-      ownerType: "Rieltor" as const,
-      rentType: "Monthly" as const,
-      photos: [
-        {
-          url: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?q=80&w=1200&auto=format&fit=crop",
-        },
-      ],
-    },
-    {
-      id: "7",
-      title: "3-к квартира",
-      location: "вул. Зелена",
-      district: "Личаківський",
-      cost: 26000,
-      rooms: 3,
-      square: 74,
-      floor: 7,
-      floorInHouse: 9,
-      ownerType: "Rieltor" as const,
-      rentType: "Monthly" as const,
-      photos: [
-        {
-          url: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?q=80&w=1200&auto=format&fit=crop",
-        },
-      ],
-    },
-    {
-      id: "8",
-      title: "3-к квартира",
-      location: "вул. Зелена",
-      district: "Личаківський",
-      cost: 26000,
-      rooms: 3,
-      square: 74,
-      floor: 7,
-      floorInHouse: 9,
-      ownerType: "Rieltor" as const,
-      rentType: "Monthly" as const,
-      photos: [
-        {
-          url: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?q=80&w=1200&auto=format&fit=crop",
-        },
-      ],
-    },
-  ];
+  const { user: authUser, getFreshToken } = useAuth();
+  const storedUser = authUser as BackendUser | null;
+  const { likedApartmentsRaw, isLikedLoading, toggleLike } = useLiked();
 
-  const ownerListings = [
+  const [savedListings, setSavedListings] = useState<
     {
-      id: "101",
-      title: "2-к Квартира, Центр",
-      address: "вул. Галицька, 14",
-      district: "Галицький",
-      price: 22500,
-      status: "active" as const,
-      views: 1248,
-      image:
-        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=400&auto=format&fit=crop",
-    },
-    {
-      id: "102",
-      title: "1-к Квартира, Стрийська",
-      address: "вул. Стрийська, 45",
-      district: "Сихівський",
-      price: 14000,
-      status: "archived" as const,
-      views: 452,
-      image:
-        "https://images.unsplash.com/photo-1484154218962-a197022b5858?q=80&w=400&auto=format&fit=crop",
-    },
-    {
-      id: "103",
-      title: "1-к Квартира, Стрийська",
-      address: "вул. Стрийська, 45",
-      district: "Сихівський",
-      price: 14500,
-      status: "archived" as const,
-      views: 452,
-      image:
-        "https://images.unsplash.com/photo-1484154218962-a197022b5858?q=80&w=400&auto=format&fit=crop",
-    },
-  ];
+      id: string;
+      title: string;
+      location: string;
+      district?: string;
+      cost: number;
+      rooms: number;
+      square: number;
+      floor: number;
+      floorInHouse: number;
+      photos: { url: string }[];
+      ownerType: "Owner" | "Rieltor";
+      rentType: "Monthly" | "Daily";
+    }[]
+  >([]);
 
-  const user = {
-    fullName: "Олександр Левченко",
-    email: "o.levchenko@orendalviv.ua",
-    role: "Rieltor" as const,
-    roleLabel: "Ріелтор",
-    avatarUrl:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&auto=format&fit=crop",
+  const [ownerListings, setOwnerListings] = useState<
+    {
+      id: string;
+      title: string;
+      address: string;
+      district: string;
+      price: number;
+      image: string;
+    }[]
+  >([]);
+
+  const [deletedOwnerIds, setDeletedOwnerIds] = useState<Set<string>>(
+    new Set(),
+  );
+
+  const user = useMemo(
+    () => ({
+      fullName: getFullName(storedUser),
+      email: storedUser?.email ?? "Немає email",
+      role: mapUserTypeToProfileRole(storedUser?.user_type),
+      roleLabel: mapUserTypeToRoleLabel(storedUser?.user_type),
+    }),
+    [storedUser],
+  );
+
+  const loadProfileData = useCallback(async () => {
+    try {
+      const freshToken = await getFreshToken();
+
+      if (!freshToken) {
+        setSavedListings([]);
+        setOwnerListings([]);
+        return;
+      }
+
+      const baseUrl = import.meta.env.VITE_API_URL;
+
+      const [likedResponse, myResponse] = await Promise.all([
+        fetch(`${baseUrl}/apartment/liked/`, {
+          headers: {
+            Authorization: `Bearer ${freshToken}`,
+          },
+        }),
+        fetch(`${baseUrl}/apartment/my/?current_page=1&page_size=20`, {
+          headers: {
+            Authorization: `Bearer ${freshToken}`,
+          },
+        }),
+      ]);
+
+      const likedData: LikedApartmentsResponse = likedResponse.ok
+        ? await likedResponse.json()
+        : { apartments: [] };
+
+      const myData: MyApartmentsResponse = myResponse.ok
+        ? await myResponse.json()
+        : { apartments: [] };
+
+      const likedApartments = likedData.apartments ?? [];
+      const myApartments = myData.apartments ?? myData.items ?? [];
+
+      const mappedSavedListings = likedApartments.map((apartment) => ({
+        id: apartment.id_ ?? apartment.id ?? "",
+        title: apartment.title,
+        location: apartment.location,
+        district: apartment.district,
+        cost: apartment.cost,
+        rooms: apartment.rooms,
+        square: apartment.square,
+        floor: apartment.floor,
+        floorInHouse: apartment.floor_in_house,
+        ownerType: mapApartmentOwnerType(apartment.owner_type),
+        rentType: mapApartmentRentType(apartment.rent_type),
+        photos: [{ url: getApartmentImage(apartment) }],
+      }));
+
+      const mappedOwnerListings = myApartments
+        .filter((apartment) => !apartment.is_deleted)
+        .map((apartment) => ({
+          id: apartment.id_ ?? apartment.id ?? "",
+          title: apartment.title,
+          address: apartment.location,
+          district: apartment.district,
+          price: apartment.cost,
+          image: getApartmentImage(apartment),
+        }))
+        .filter((listing) => !deletedOwnerIds.has(listing.id));
+
+      setSavedListings(mappedSavedListings);
+      setOwnerListings(mappedOwnerListings);
+    } catch (error) {
+      console.error("Failed to load profile data:", error);
+      setSavedListings([]);
+      setOwnerListings([]);
+    }
+  }, [getFreshToken, deletedOwnerIds]);
+
+  useEffect(() => {
+    loadProfileData();
+  }, [loadProfileData]);
+
+  function handleOwnerListingDeleted(id: string) {
+    setDeletedOwnerIds((prev) => new Set([...prev, id]));
+    setOwnerListings((prev) => prev.filter((listing) => listing.id !== id));
+  }
+
+  const isOwnerView = user.role === "Owner" || user.role === "Rieltor";
+
+  const handleCardLikeClick = (id: string) => {
+    setSelectedListingId(id);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmUnlike = async () => {
+    if (!selectedListingId) return;
+
+    await toggleLike(selectedListingId);
+    setConfirmOpen(false);
+    setSelectedListingId(null);
+  };
+
+  const handleCancelUnlike = () => {
+    setConfirmOpen(false);
+    setSelectedListingId(null);
   };
 
   return (
@@ -198,6 +265,7 @@ export default function Profile() {
       user={user}
       savedListings={savedListings}
       ownerListings={ownerListings}
+      onOwnerListingDeleted={handleOwnerListingDeleted}
     />
   );
 }

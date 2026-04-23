@@ -11,8 +11,12 @@ const districts = [
   "Франківський",
   "Залізничний",
 ];
+
 const rooms = ["Будь-яка", "1", "2", "3", "4+"];
-const durations = ["Тривала", "Подобова"];
+
+const rentTypes = ["Будь-який", "Тривала", "Подобова"];
+
+const ownerTypes = ["Всі", "Власник", "Рієлтор"];
 
 interface SelectDropdownProps {
   label: string;
@@ -36,6 +40,7 @@ function SelectDropdown({
         setOpen(false);
       }
     }
+
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
@@ -45,14 +50,17 @@ function SelectDropdown({
       <span className="text-[10px] font-semibold uppercase tracking-widest text-white/60">
         {label}
       </span>
+
       <button
         type="button"
         onClick={() => setOpen((p) => !p)}
-        className="mt-1 text-left text-white text-sm font-medium flex items-center justify-between gap-2 outline-none"
+        className="mt-1 text-left text-white text-sm font-medium flex items-center justify-between gap-2 outline-none cursor-pointer"
       >
         {value}
         <svg
-          className={`w-3.5 h-3.5 text-white/60 transition-transform duration-200 shrink-0 ${open ? "rotate-180" : ""}`}
+          className={`w-3.5 h-3.5 text-white/60 transition-transform duration-200 shrink-0 ${
+            open ? "rotate-180" : ""
+          }`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -62,44 +70,42 @@ function SelectDropdown({
         </svg>
       </button>
 
-      <div
-        className={`absolute top-full left-0 mt-2 w-52 bg-white md:bg-white/25 md:backdrop-blur-md border border-gray-200 md:border-white/30 rounded-xl shadow-2xl z-[9999] overflow-hidden transition-all duration-300 ease-out ${
-          open
-            ? "opacity-100 max-h-64 translate-y-0 pointer-events-auto"
-            : "opacity-0 max-h-0 -translate-y-2 pointer-events-none"
-        }`}
-      >
-        <div className="py-1.5">
-          {options.map((opt) => (
-            <button
-              key={opt}
-              type="button"
-              onClick={() => {
-                onChange(opt);
-                setOpen(false);
-              }}
-              className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-gray-50 md:hover:bg-white/20 ${
-                value === opt
-                  ? "text-emerald-500 md:text-white font-semibold"
-                  : "text-gray-700 md:text-white/80"
-              }`}
-            >
-              {opt}
-            </button>
-          ))}
+      {open && (
+        <div className="absolute top-full left-0 mt-2 w-full bg-white md:bg-slate-800/80 backdrop-blur-xl border border-gray-200 md:border-white/30 rounded-xl shadow-2xl z-[9999] overflow-hidden">
+          <div className="py-1.5">
+            {options.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => {
+                  onChange(opt);
+                  setOpen(false);
+                }}
+                className={`w-full text-left px-4 py-2.5 text-sm transition-colors cursor-pointer hover:bg-gray-100 md:hover:bg-white/10 ${
+                  value === opt
+                    ? "text-emerald-400 font-semibold md:text-emerald-400 text-emerald-600"
+                    : "text-gray-800 md:text-white/90"
+                }`}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
 
 export function HeroSearchBar() {
   const navigate = useNavigate();
+
   const [district, setDistrict] = useState("Всі райони");
   const [priceFrom, setPriceFrom] = useState("");
   const [priceTo, setPriceTo] = useState("");
   const [room, setRoom] = useState("Будь-яка");
-  const [duration, setDuration] = useState("Тривала");
+  const [rentType, setRentType] = useState("Будь-який");
+  const [ownerType, setOwnerType] = useState("Всі");
 
   const handlePrice = (val: string, set: (v: string) => void) => {
     if (val.length <= 6) set(val);
@@ -113,25 +119,29 @@ export function HeroSearchBar() {
     }
 
     if (priceFrom) {
-      params.set("priceMin", priceFrom);
+      params.set("price_min", priceFrom);
     }
 
     if (priceTo) {
-      params.set("priceMax", priceTo);
+      params.set("price_max", priceTo);
     }
 
     if (room !== "Будь-яка") {
-      const roomNum = room === "4+" ? "4" : room;
-      params.set("rooms", roomNum);
-    }
-    if (duration === "Подобова") {
-      params.set("rentType", "Daily");
-    } else {
-      params.set("rentType", "Default");
+      params.set("rooms", room === "4+" ? "4" : room);
     }
 
-    const queryString = params.toString();
-    navigate(`/listings${queryString ? "?" + queryString : ""}`);
+    if (rentType !== "Будь-який") {
+      params.set("rent_type", rentType === "Подобова" ? "Daily" : "Default");
+    }
+
+    if (ownerType !== "Всі") {
+      params.set("owner_type", ownerType === "Власник" ? "Owner" : "Rieltor");
+    }
+
+    params.set("sort", "newest");
+    params.set("page", "1");
+
+    navigate(`/listings?${params.toString()}`);
   };
 
   const fieldClass =
@@ -152,6 +162,7 @@ export function HeroSearchBar() {
         <span className="text-[10px] font-semibold uppercase tracking-widest text-white/60 px-4 pt-3">
           Ціна від/до
         </span>
+
         <div className="flex items-center gap-2 px-4 pb-3 mt-1">
           <input
             type="text"
@@ -164,7 +175,9 @@ export function HeroSearchBar() {
             }
             className="w-full text-sm font-medium text-white placeholder:text-white/40 bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
+
           <span className="text-white/40 text-sm shrink-0">—</span>
+
           <input
             type="text"
             inputMode="numeric"
@@ -188,19 +201,28 @@ export function HeroSearchBar() {
         />
       </div>
 
-      <div className={`${fieldClass} md:border-r-0`}>
+      <div className={fieldClass}>
         <SelectDropdown
-          label="Тривалість"
-          options={durations}
-          value={duration}
-          onChange={setDuration}
+          label="Тип оренди"
+          options={rentTypes}
+          value={rentType}
+          onChange={setRentType}
+        />
+      </div>
+
+      <div className={`${fieldClass}`}>
+        <SelectDropdown
+          label="Від кого"
+          options={ownerTypes}
+          value={ownerType}
+          onChange={setOwnerType}
         />
       </div>
 
       <div className="p-2 flex items-center">
         <Button
           size="lg"
-          className="w-full md:w-auto rounded-xl gap-2 px-10"
+          className="w-full md:w-auto rounded-xl gap-2 px-10 cursor-pointer"
           onClick={handleSearch}
         >
           <Search size={18} />

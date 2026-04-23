@@ -1,7 +1,6 @@
 import type {
   BackendApartmentPreview,
   BackendApartmentFull,
-  BackendUser,
 } from "../api/apartments";
 import type {
   ApartmentCardProps,
@@ -15,7 +14,8 @@ export function mapRentType(type: string): RentType {
 }
 
 export function mapUserType(type: string): UserType {
-  if (type === "AGENT") return "Rieltor";
+  const normalized = type.replace("UserType.", "").toUpperCase();
+  if (normalized === "AGENT") return "Rieltor";
   return "Owner";
 }
 
@@ -24,7 +24,7 @@ export function mapPreviewToCard(
 ): Omit<ApartmentCardProps, "isLiked" | "onLike"> {
   return {
     id: apt.id_,
-    ownerId: apt.owner,
+    ownerId: apt.id_,
     title: apt.title,
     location: apt.location,
     district: apt.district,
@@ -34,8 +34,8 @@ export function mapPreviewToCard(
     floor: apt.floor,
     floorInHouse: apt.floor_in_house,
     rentType: mapRentType(apt.rent_type),
-    ownerType: "Owner",
-    photos: apt.main_picture ? [{ url: apt.main_picture }] : [],
+    ownerType: mapUserType(apt.owner_type),
+    photos: apt.picture ? [{ url: apt.picture }] : [],
   };
 }
 
@@ -44,11 +44,11 @@ export function mapFullToCard(
 ): Omit<ApartmentCardProps, "isLiked" | "onLike"> {
   const photos = apt.pictures?.length
     ? apt.pictures.map((p) => ({ url: p.url }))
-    : (apt.main_picture ?? []).map((url) => ({ url }));
+    : [];
 
   return {
     id: apt.id_,
-    ownerId: apt.owner,
+    ownerId: apt.owner_info.email,
     title: apt.title,
     description: apt.description ?? undefined,
     location: apt.location,
@@ -59,24 +59,25 @@ export function mapFullToCard(
     floor: apt.floor,
     floorInHouse: apt.floor_in_house,
     rentType: mapRentType(apt.rent_type),
-    ownerType: "Owner",
+    ownerType: mapUserType(apt.owner_type),
     details: (apt.details as ApartmentCardProps["details"]) ?? undefined,
     photos,
   };
 }
 
-export function mapBackendUser(user: BackendUser): MockUser {
+export function mapOwnerInfo(apt: BackendApartmentFull): MockUser {
+  const { owner_info, owner_type } = apt;
   const displayName =
-    user.first_name && user.last_name
-      ? `${user.first_name} ${user.last_name}`
-      : (user.username ?? user.email);
+    owner_info.first_name && owner_info.last_name
+      ? `${owner_info.first_name} ${owner_info.last_name}`
+      : owner_info.email;
 
   return {
-    id: user.id_,
+    id: owner_info.email,
     username: displayName,
-    email: user.email,
-    type: mapUserType(user.type_),
-    phoneNumber: user.phone_number ?? "",
-    isVerified: user.is_verified,
+    email: owner_info.email,
+    type: mapUserType(owner_type),
+    phoneNumber: owner_info.phone_number ?? "",
+    isVerified: owner_info.is_verified,
   };
 }

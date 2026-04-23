@@ -112,5 +112,15 @@ export function persistAuth(data: unknown, fallbackIdToken?: string) {
       "user",
       JSON.stringify((data as { user: unknown }).user),
     );
+    return;
   }
+
+  if (typeof data === "object" && data !== null) {
+    localStorage.setItem("user", JSON.stringify(data));
+  }
+}
+
+export function clearAuth() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
 }

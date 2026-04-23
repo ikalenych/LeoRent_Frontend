@@ -14,12 +14,12 @@ import type { ApartmentCardProps } from "../../types/apartment";
 const DETAILS_LABELS = [
   { key: "wifi", label: "Wi-Fi", Icon: Wifi },
   { key: "elevator", label: "Ліфт", Icon: ArrowUpDown },
-  { key: "washer", label: "Пральна машина", Icon: WashingMachine },
+  { key: "washing_machine", label: "Пральна машина", Icon: WashingMachine },
   { key: "parking", label: "Паркінг", Icon: Car },
   { key: "furniture", label: "Меблі", Icon: Sofa },
-  { key: "pets", label: "Тварини", Icon: PawPrint },
+  { key: "animals", label: "Тварини", Icon: PawPrint },
   { key: "balcony", label: "Балкон", Icon: DoorOpen },
-  { key: "ac", label: "Кондиціонер", Icon: Wind },
+  { key: "conditioner", label: "Кондиціонер", Icon: Wind },
 ] as const;
 
 type Props = Pick<
@@ -67,7 +67,7 @@ export function ApartmentInfo({
           <h2 className="text-text-title font-semibold text-base">Зручності</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-3">
             {DETAILS_LABELS.map(({ key, label, Icon }) => {
-              const active = !!details[key];
+              const active = !!details[key as keyof typeof details];
               return (
                 <div key={key} className="flex items-center gap-2 text-sm">
                   <Icon

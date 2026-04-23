@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import ConfirmModal from "./ConfirmModal";
 import ProfileSavedListingCard, {
   type ProfileListingCardData,
 } from "./ProfileSavedListingCard";
+import { useAuth } from "../../context/AuthContext";
 
 interface SavedListingsSectionProps {
   listings: ProfileListingCardData[];
@@ -15,58 +16,95 @@ const LOAD_MORE_STEP = 3;
 export default function SavedListingsSection({
   listings,
 }: SavedListingsSectionProps) {
-  const [items, setItems] = useState(listings);
+  const { getFreshToken } = useAuth();
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
+  const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
   const [pendingRemove, setPendingRemove] =
     useState<ProfileListingCardData | null>(null);
+  const [isRemoving, setIsRemoving] = useState(false);
 
-  useEffect(() => {
-    setItems(listings);
-  }, [listings]);
-
-  const visibleListings = useMemo(
-    () => items.slice(0, visibleCount),
-    [items, visibleCount],
+  const displayItems = useMemo(
+    () => listings.filter((item) => !deletedIds.has(item.id)),
+    [listings, deletedIds],
   );
 
-  const hasMore = visibleCount < items.length;
+  const visibleListings = useMemo(
+    () => displayItems.slice(0, visibleCount),
+    [displayItems, visibleCount],
+  );
+
+  const hasMore = visibleCount < displayItems.length;
   const isExpandedFromInitial = visibleCount >= EXPANDED_VISIBLE;
 
   function handleExpand() {
     if (visibleCount < EXPANDED_VISIBLE) {
-      setVisibleCount(Math.min(EXPANDED_VISIBLE, items.length));
+      setVisibleCount(Math.min(EXPANDED_VISIBLE, displayItems.length));
       return;
     }
 
-    setVisibleCount((prev) => Math.min(prev + LOAD_MORE_STEP, items.length));
+    setVisibleCount((prev) =>
+      Math.min(prev + LOAD_MORE_STEP, displayItems.length),
+    );
   }
 
-  function handleConfirmRemove() {
+  async function handleConfirmRemove() {
     if (!pendingRemove) return;
 
-    setItems((prev) => prev.filter((item) => item.id !== pendingRemove.id));
-    setPendingRemove(null);
-    setVisibleCount((prev) =>
-      Math.min(prev, Math.max(items.length - 1, INITIAL_VISIBLE)),
-    );
+    try {
+      setIsRemoving(true);
+
+      const freshToken = await getFreshToken();
+      if (!freshToken) {
+        alert("Увійдіть в акаунт.");
+        return;
+      }
+
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/apartment/${pendingRemove.id}/like`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${freshToken}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Toggle like failed:", errorText);
+        throw new Error("Failed to toggle like");
+      }
+
+      setDeletedIds((prev) => new Set([...prev, pendingRemove.id]));
+      setVisibleCount((prev) =>
+        Math.min(prev, Math.max(displayItems.length - 1, INITIAL_VISIBLE)),
+      );
+      setPendingRemove(null);
+    } catch (error) {
+      console.error("Failed to remove saved listing:", error);
+      alert("Не вдалося видалити оголошення зі збережених.");
+    } finally {
+      setIsRemoving(false);
+    }
   }
 
   return (
     <section className="mt-10">
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <h2 className="text-[22px] font-bold text-slate-900">
-            Збережені оголошення
-          </h2>
-
-          <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-slate-100 px-2 text-sm font-semibold text-slate-500">
-            {items.length}
-          </span>
-        </div>
-      </div>
-
-      {items.length ? (
+      {displayItems.length ? (
         <>
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <h2 className="text-[22px] font-bold text-slate-900">
+                Збережені оголошення
+              </h2>
+
+              <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-slate-100 px-2 text-sm font-semibold text-slate-500">
+                {displayItems.length}
+              </span>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
             {visibleListings.map((listing) => (
               <ProfileSavedListingCard
@@ -82,7 +120,7 @@ export default function SavedListingsSection({
               <button
                 type="button"
                 onClick={handleExpand}
-                className="inline-flex h-12 items-center justify-center rounded-2xl border border-slate-300 bg-white px-6 text-[15px] font-medium text-slate-800 transition hover:border-slate-400 hover:bg-slate-50"
+                className="inline-flex h-12 items-center justify-center rounded-2xl border border-slate-300 bg-white px-6 text-[15px] font-medium text-slate-800 transition hover:border-slate-400 hover:bg-slate-50 cursor-pointer"
               >
                 {isExpandedFromInitial ? "Показати ще" : "Дивитись всі"}
               </button>
@@ -90,8 +128,13 @@ export default function SavedListingsSection({
           ) : null}
         </>
       ) : (
-        <div className="rounded-3xl bg-white px-6 py-10 text-center text-slate-500 shadow-[0_8px_30px_rgba(15,23,42,0.05)]">
-          У вас поки немає збережених оголошень
+        <div className="rounded-3xl bg-white px-6 py-12 text-center shadow-[0_8px_30px_rgba(15,23,42,0.05)]">
+          <p className="text-lg font-semibold text-slate-900">
+            Немає збережених оголошень
+          </p>
+          <p className="mt-2 text-sm text-slate-500">
+            Почніть збирати улюблені оголошення, щоб легше їх знайти пізніше
+          </p>
         </div>
       )}
 
@@ -99,11 +142,13 @@ export default function SavedListingsSection({
         isOpen={Boolean(pendingRemove)}
         title="Видалити зі збережених?"
         description="Оголошення буде прибране зі списку збережених."
-        confirmText="Видалити"
+        confirmText={isRemoving ? "Видалення..." : "Видалити"}
         cancelText="Скасувати"
         confirmVariant="danger"
         onConfirm={handleConfirmRemove}
-        onCancel={() => setPendingRemove(null)}
+        onCancel={() => {
+          if (!isRemoving) setPendingRemove(null);
+        }}
       />
     </section>
   );

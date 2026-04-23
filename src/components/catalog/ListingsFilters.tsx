@@ -48,6 +48,7 @@ export interface FilterProps {
   onApply: () => void;
   totalResults: number;
   isDirty: boolean;
+  isLoadingPreview: boolean;
 }
 
 function hasAnyFilter(f: FilterState) {
@@ -98,6 +99,7 @@ export function DesktopFilters({
   onApply,
   totalResults,
   isDirty,
+  isLoadingPreview,
 }: FilterProps) {
   const set = <K extends keyof FilterState>(key: K, value: FilterState[K]) =>
     onChange({ ...filters, [key]: value });
@@ -300,7 +302,7 @@ export function DesktopFilters({
           onClick={onApply}
           className="w-full bg-primary hover:bg-primary-hover text-white font-medium text-sm py-3 rounded-xl transition-colors cursor-pointer"
         >
-          Показати {totalResults} варіантів
+          Показати {isLoadingPreview ? "..." : totalResults} варіантів
         </button>
       )}
     </aside>

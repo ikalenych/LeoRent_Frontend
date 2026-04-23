@@ -1,10 +1,17 @@
 import { useEffect, useState } from "react";
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import {
+  signInWithPopup,
+  GoogleAuthProvider,
+  createUserWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
 import { SignUpStepOne } from "../components/auth/SignUpStepOne";
 import { SignUpStepTwo } from "../components/auth/SignUpStepTwo";
 import { SignUpStepThree } from "../components/auth/SignUpStepThree";
+import { useAuth } from "../context/AuthContext";
 import { auth, googleProvider } from "../lib/firebase";
-import { persistAuth } from "../lib/auth-api";
+import { firebaseAuthRequest } from "../lib/auth-api";
 import { mapApiErrorToUaMessage } from "../lib/error-messages";
 
 export type UserRole = "owner" | "realtor" | "tenant" | "";
@@ -202,6 +209,8 @@ async function signupRequest(payload: {
 }
 
 export default function SignUp() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const [persistedState] = useState(() => getInitialPersistedState());
 
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(
@@ -320,11 +329,8 @@ export default function SignUp() {
     try {
       const credential = await signInWithPopup(auth, googleProvider);
       const firebaseUser = credential.user;
-      const providerCredential =
-        GoogleAuthProvider.credentialFromResult(credential);
 
-      const idToken =
-        providerCredential?.idToken || (await firebaseUser.getIdToken());
+      const idToken = await firebaseUser.getIdToken();
 
       localStorage.setItem("token", idToken);
 
@@ -399,19 +405,33 @@ export default function SignUp() {
     setIsSubmitting(true);
 
     try {
-      const data = await signupRequest({
-        email: emailValidation.value,
-        username: normalizedUsername,
+      let idToken = localStorage.getItem("token");
+
+      if (!idToken || formData.password !== "google-auth") {
+        const credential = await createUserWithEmailAndPassword(
+          auth,
+          emailValidation.value,
+          formData.password,
+        );
+
+        await updateProfile(credential.user, {
+          displayName: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+        });
+
+        idToken = await credential.user.getIdToken();
+      }
+
+      const data = await firebaseAuthRequest({
+        id_token: idToken,
         first_name: formData.firstName.trim(),
         last_name: formData.lastName.trim(),
         phone: formData.phone.trim(),
-        password: formData.password,
         user_type: mapRoleToApiUserType(formData.role),
       });
 
-      persistAuth(data);
+      login(data, idToken);
       localStorage.removeItem(SIGN_UP_STORAGE_KEY);
-      window.location.href = "/";
+      navigate("/");
     } catch (error: any) {
       setSubmitError(
         error instanceof Error
