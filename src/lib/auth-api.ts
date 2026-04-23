@@ -1,4 +1,7 @@
 const API_URL = "https://leorent-backend.onrender.com";
+// TODO: Make a line above static and singleton variable to be accessed
+// In different files since there are mulptiple definitions of it
+
 
 type ApiErrorDetailItem = {
   msg?: string;
