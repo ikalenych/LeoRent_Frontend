@@ -1,19 +1,70 @@
 import React, { useRef, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import DistrictCard from "./DistrictCard";
 
+const API_URL = import.meta.env.VITE_API_URL as string;
 const placeholder = "https://placehold.co/600x400?text=Lviv";
 
-const districts = [
-  { id: 1, name: "Галицький", count: 720, imageUrl: placeholder },
-  { id: 2, name: "Франківський", count: 550, imageUrl: placeholder },
-  { id: 3, name: "Сихівський", count: 420, imageUrl: placeholder },
-  { id: 4, name: "Личаківський", count: 310, imageUrl: placeholder },
-  { id: 5, name: "Шевченківський", count: 600, imageUrl: placeholder },
-  { id: 6, name: "Залізничний", count: 470, imageUrl: placeholder },
+type DistrictItem = {
+  id: number;
+  name: string;
+  count: number;
+  imageUrl: string;
+};
+
+const initialDistricts: DistrictItem[] = [
+  {
+    id: 1,
+    name: "Галицький",
+    count: 0,
+    imageUrl: "https://picsum.photos/seed/halytskyi/600/400",
+  },
+  {
+    id: 2,
+    name: "Франківський",
+    count: 0,
+    imageUrl: "https://picsum.photos/seed/frankivskyi/600/400",
+  },
+  {
+    id: 3,
+    name: "Сихівський",
+    count: 0,
+    imageUrl: "https://picsum.photos/seed/sykhivskyi/600/400",
+  },
+  {
+    id: 4,
+    name: "Личаківський",
+    count: 0,
+    imageUrl: "https://picsum.photos/seed/lychakivskyi/600/400",
+  },
+  {
+    id: 5,
+    name: "Шевченківський",
+    count: 0,
+    imageUrl: "https://picsum.photos/seed/shevchenkivskyi/600/400",
+  },
+  {
+    id: 6,
+    name: "Залізничний",
+    count: 0,
+    imageUrl: "https://picsum.photos/seed/zaliznychnyi/600/400",
+  },
 ];
 
+function getToken() {
+  return localStorage.getItem("token");
+}
+
+function authHeaders(): HeadersInit {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export const PopularDistricts: React.FC = () => {
+  const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const [districts, setDistricts] = useState(initialDistricts);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
@@ -37,6 +88,42 @@ export const PopularDistricts: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const fetchDistrictCounts = async () => {
+      try {
+        const results = await Promise.all(
+          initialDistricts.map(async (district) => {
+            const params = new URLSearchParams();
+            params.set("district", district.name);
+            params.set("current_page", "1");
+            params.set("page_size", "1");
+            params.set("sort", "newest");
+
+            const res = await fetch(
+              `${API_URL}/apartment/?${params.toString()}`,
+              {
+                headers: authHeaders(),
+              },
+            );
+
+            const data = await res.json();
+
+            return {
+              ...district,
+              count: data.total ?? 0,
+            };
+          }),
+        );
+
+        setDistricts(results);
+      } catch (error) {
+        console.error("Failed to load district counts:", error);
+      }
+    };
+
+    fetchDistrictCounts();
+  }, []);
+
   const scroll = (direction: "left" | "right") => {
     const el = scrollRef.current;
     if (!el) return;
@@ -45,6 +132,15 @@ export const PopularDistricts: React.FC = () => {
       left: direction === "right" ? 300 : -300,
       behavior: "smooth",
     });
+  };
+
+  const handleDistrictClick = (name: string) => {
+    const params = new URLSearchParams();
+    params.set("district", name);
+    params.set("sort", "newest");
+    params.set("page", "1");
+
+    navigate(`/listings?${params.toString()}`);
   };
 
   return (
@@ -56,12 +152,11 @@ export const PopularDistricts: React.FC = () => {
           <button
             onClick={() => scroll("left")}
             disabled={!canScrollLeft}
-            className={`w-9 h-9 rounded-full border flex items-center justify-center transition
-              ${
-                canScrollLeft
-                  ? "border-gray-300 text-gray-700 hover:bg-gray-100"
-                  : "border-gray-200 text-gray-300 cursor-not-allowed"
-              }`}
+            className={`w-9 h-9 rounded-full border flex items-center justify-center transition ${
+              canScrollLeft
+                ? "border-gray-300 text-gray-700 hover:bg-gray-100"
+                : "border-gray-200 text-gray-300 cursor-not-allowed"
+            }`}
           >
             ←
           </button>
@@ -69,12 +164,11 @@ export const PopularDistricts: React.FC = () => {
           <button
             onClick={() => scroll("right")}
             disabled={!canScrollRight}
-            className={`w-9 h-9 rounded-full border flex items-center justify-center transition
-              ${
-                canScrollRight
-                  ? "border-gray-300 text-gray-700 hover:bg-gray-100"
-                  : "border-gray-200 text-gray-300 cursor-not-allowed"
-              }`}
+            className={`w-9 h-9 rounded-full border flex items-center justify-center transition ${
+              canScrollRight
+                ? "border-gray-300 text-gray-700 hover:bg-gray-100"
+                : "border-gray-200 text-gray-300 cursor-not-allowed"
+            }`}
           >
             →
           </button>
@@ -91,12 +185,17 @@ export const PopularDistricts: React.FC = () => {
         "
       >
         {districts.map((district) => (
-          <DistrictCard
+          <div
             key={district.id}
-            name={district.name}
-            count={district.count}
-            imageUrl={district.imageUrl}
-          />
+            className="shrink-0 cursor-pointer"
+            onClick={() => handleDistrictClick(district.name)}
+          >
+            <DistrictCard
+              name={district.name}
+              count={district.count}
+              imageUrl={district.imageUrl}
+            />
+          </div>
         ))}
 
         <div className="shrink-0 w-1" />

@@ -7,6 +7,7 @@ import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import CreateListing from "./pages/CreateListing";
 import Profile from "./pages/Profile";
+import AboutUs from "./pages/AboutUs.tsx";
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/listings" element={<Listings />} />
         <Route path="/listings/:id" element={<ApartmentPage />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/about-us" element={<AboutUs />} />
       </Route>
     </Routes>
   );
