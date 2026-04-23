@@ -320,10 +320,15 @@ export function ListingPropertyDetailsSection({
   );
 }
 
+type AmenityOption = {
+  value: string;
+  label: string;
+};
+
 type AmenitiesSectionProps = {
   selectedAmenities: string[];
   toggleAmenity: (value: string) => void;
-  amenitiesOptions: string[];
+  amenitiesOptions: readonly AmenityOption[];
 };
 
 export function ListingAmenitiesSection({
@@ -339,12 +344,12 @@ export function ListingAmenitiesSection({
       />
 
       <div className="grid grid-cols-1 gap-y-4 sm:grid-cols-2 xl:grid-cols-3">
-        {amenitiesOptions.map((item: string) => (
+        {amenitiesOptions.map((item) => (
           <CheckboxItem
-            key={item}
-            label={item}
-            checked={selectedAmenities.includes(item)}
-            onChange={() => toggleAmenity(item)}
+            key={item.value}
+            label={item.label}
+            checked={selectedAmenities.includes(item.value)}
+            onChange={() => toggleAmenity(item.value)}
           />
         ))}
       </div>
@@ -359,6 +364,8 @@ type PricingSectionProps = {
   price: string;
   setPrice: (value: string) => void;
   errors: ListingStepOneErrors;
+  priceLabel?: string;
+  hideMinTerm?: boolean;
 };
 
 export function ListingPricingSection({
@@ -368,6 +375,8 @@ export function ListingPricingSection({
   price,
   setPrice,
   errors,
+  priceLabel,
+  hideMinTerm = false,
 }: PricingSectionProps) {
   return (
     <SectionCard dark>
@@ -377,10 +386,14 @@ export function ListingPricingSection({
         light
       />
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-[1.2fr_1fr]">
+      <div
+        className={`grid grid-cols-1 gap-4 ${
+          hideMinTerm ? "" : "md:grid-cols-[1.2fr_1fr]"
+        }`}
+      >
         <div>
           <FieldLabel htmlFor="price" light>
-            Ціна / місяць
+            {priceLabel ?? "Ціна / місяць"}
           </FieldLabel>
 
           <div className="relative">
@@ -400,22 +413,24 @@ export function ListingPricingSection({
           <ErrorText message={errors.price} />
         </div>
 
-        <div>
-          <FieldLabel htmlFor="min-term" light>
-            Мін. термін
-          </FieldLabel>
+        {!hideMinTerm ? (
+          <div>
+            <FieldLabel htmlFor="min-term" light>
+              Мін. термін
+            </FieldLabel>
 
-          <CustomSelect
-            value={selectedMinTerm}
-            onChange={setSelectedMinTerm}
-            options={minTermOptions}
-            placeholder="Оберіть термін"
-            dark
-            error={errors.minTerm}
-          />
+            <CustomSelect
+              value={selectedMinTerm}
+              onChange={setSelectedMinTerm}
+              options={minTermOptions}
+              placeholder="Оберіть термін"
+              dark
+              error={errors.minTerm}
+            />
 
-          <ErrorText message={errors.minTerm} />
-        </div>
+            <ErrorText message={errors.minTerm} />
+          </div>
+        ) : null}
       </div>
     </SectionCard>
   );

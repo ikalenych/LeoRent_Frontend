@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { getAuth } from "firebase/auth";
 import { clearAuth, persistAuth } from "../lib/auth-api";
 
 type AuthUser = {
@@ -16,14 +17,13 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   login: (data: unknown, fallbackIdToken?: string) => void;
   logout: () => void;
+  getFreshToken: () => Promise<string | null>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 function parseStoredUser(): AuthUser | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
+  if (typeof window === "undefined") return null;
 
   const rawUser = localStorage.getItem("user");
   if (!rawUser) return null;
@@ -36,9 +36,7 @@ function parseStoredUser(): AuthUser | null {
 }
 
 function getStoredToken(): string | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
+  if (typeof window === "undefined") return null;
 
   return localStorage.getItem("token");
 }
@@ -75,8 +73,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(null);
   }
 
+  async function getFreshToken(): Promise<string | null> {
+    try {
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+      if (!currentUser) return null;
+
+      const freshToken = await currentUser.getIdToken(true);
+
+      localStorage.setItem("token", freshToken);
+      setToken(freshToken);
+
+      return freshToken;
+    } catch (error) {
+      console.error("Failed to refresh token:", error);
+      return null;
+    }
+  }
+
   const value = useMemo(
-    () => ({ user, token, isAuthenticated, login, logout }),
+    () => ({ user, token, isAuthenticated, login, logout, getFreshToken }),
     [user, token, isAuthenticated],
   );
 
