@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import UserProfileLayout from "../components/cabinet/UserProfileLayout";
+import { useLiked } from "../context/LikedContext";
+import ProfileHeader from "../components/cabinet/ProfileHeader";
+import OwnerListingsSection, {
+  type OwnerListingRow,
+} from "../components/cabinet/OwnerListingsSection";
+import ApartmentCard from "../components/ApartmentCard";
+import ConfirmModal from "../components/cabinet/ConfirmModal";
+import type { ApartmentCardProps } from "../types/apartment";
 
 type BackendUser = {
   id: string;
@@ -108,6 +115,7 @@ function getApartmentImage(apartment: BackendApartment) {
 export default function Profile() {
   const { user: authUser, getFreshToken } = useAuth();
   const storedUser = authUser as BackendUser | null;
+  const { likedApartmentsRaw, isLikedLoading, toggleLike } = useLiked();
 
   const [savedListings, setSavedListings] = useState<
     {
@@ -231,6 +239,26 @@ export default function Profile() {
     setDeletedOwnerIds((prev) => new Set([...prev, id]));
     setOwnerListings((prev) => prev.filter((listing) => listing.id !== id));
   }
+
+  const isOwnerView = user.role === "Owner" || user.role === "Rieltor";
+
+  const handleCardLikeClick = (id: string) => {
+    setSelectedListingId(id);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmUnlike = async () => {
+    if (!selectedListingId) return;
+
+    await toggleLike(selectedListingId);
+    setConfirmOpen(false);
+    setSelectedListingId(null);
+  };
+
+  const handleCancelUnlike = () => {
+    setConfirmOpen(false);
+    setSelectedListingId(null);
+  };
 
   return (
     <UserProfileLayout
