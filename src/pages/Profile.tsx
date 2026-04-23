@@ -1,13 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useLiked } from "../context/LikedContext";
-import ProfileHeader from "../components/cabinet/ProfileHeader";
-import OwnerListingsSection, {
-  type OwnerListingRow,
-} from "../components/cabinet/OwnerListingsSection";
-import ApartmentCard from "../components/ApartmentCard";
-import ConfirmModal from "../components/cabinet/ConfirmModal";
-import type { ApartmentCardProps } from "../types/apartment";
+import UserProfileLayout from "../components/cabinet/UserProfileLayout";
 
 type BackendUser = {
   id: string;
@@ -113,9 +106,8 @@ function getApartmentImage(apartment: BackendApartment) {
 }
 
 export default function Profile() {
-  const { user: authUser, getFreshToken } = useAuth();
+  const { user: authUser, token, getFreshToken } = useAuth();
   const storedUser = authUser as BackendUser | null;
-  const { likedApartmentsRaw, isLikedLoading, toggleLike } = useLiked();
 
   const [savedListings, setSavedListings] = useState<
     {
@@ -149,6 +141,9 @@ export default function Profile() {
     new Set(),
   );
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const user = useMemo(
     () => ({
       fullName: getFullName(storedUser),
@@ -161,11 +156,15 @@ export default function Profile() {
 
   const loadProfileData = useCallback(async () => {
     try {
+      setIsLoading(true);
+      setErrorMessage(null);
       const freshToken = await getFreshToken();
+      const authToken = freshToken || token;
 
-      if (!freshToken) {
+      if (!authToken) {
         setSavedListings([]);
         setOwnerListings([]);
+        setIsLoading(false);
         return;
       }
 
@@ -174,12 +173,12 @@ export default function Profile() {
       const [likedResponse, myResponse] = await Promise.all([
         fetch(`${baseUrl}/apartment/liked/`, {
           headers: {
-            Authorization: `Bearer ${freshToken}`,
+            Authorization: `Bearer ${authToken}`,
           },
         }),
         fetch(`${baseUrl}/apartment/my/?current_page=1&page_size=20`, {
           headers: {
-            Authorization: `Bearer ${freshToken}`,
+            Authorization: `Bearer ${authToken}`,
           },
         }),
       ]);
@@ -228,37 +227,22 @@ export default function Profile() {
       console.error("Failed to load profile data:", error);
       setSavedListings([]);
       setOwnerListings([]);
+      setErrorMessage(
+        "Не вдалося завантажити дані профілю. Спробуйте оновити сторінку.",
+      );
+    } finally {
+      setIsLoading(false);
     }
-  }, [getFreshToken, deletedOwnerIds]);
+  }, [getFreshToken, token, deletedOwnerIds]);
 
   useEffect(() => {
     loadProfileData();
-  }, [loadProfileData]);
+  }, [loadProfileData, token]);
 
   function handleOwnerListingDeleted(id: string) {
     setDeletedOwnerIds((prev) => new Set([...prev, id]));
     setOwnerListings((prev) => prev.filter((listing) => listing.id !== id));
   }
-
-  const isOwnerView = user.role === "Owner" || user.role === "Rieltor";
-
-  const handleCardLikeClick = (id: string) => {
-    setSelectedListingId(id);
-    setConfirmOpen(true);
-  };
-
-  const handleConfirmUnlike = async () => {
-    if (!selectedListingId) return;
-
-    await toggleLike(selectedListingId);
-    setConfirmOpen(false);
-    setSelectedListingId(null);
-  };
-
-  const handleCancelUnlike = () => {
-    setConfirmOpen(false);
-    setSelectedListingId(null);
-  };
 
   return (
     <UserProfileLayout
@@ -266,6 +250,9 @@ export default function Profile() {
       savedListings={savedListings}
       ownerListings={ownerListings}
       onOwnerListingDeleted={handleOwnerListingDeleted}
+      isLoading={isLoading}
+      errorMessage={errorMessage}
+      onRetry={loadProfileData}
     />
   );
 }

@@ -1,17 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mail, Lock, LogIn } from "lucide-react";
-import {
-  GoogleAuthProvider,
-  signInWithPopup,
-  signInWithEmailAndPassword,
-} from "firebase/auth";
+import { Mail, Lock } from "lucide-react";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { AuthCard } from "../components/auth/AuthCard";
 import { Input } from "../components/ui/Input";
 import { Button } from "../components/ui/Button";
 import { ErrorAlert } from "../components/ui/ErrorAlert";
 import { useAuth } from "../context/AuthContext";
-import { auth, googleProvider } from "../lib/firebase";
+import { auth } from "../lib/firebase";
 import { firebaseSignupRequest } from "../lib/auth-api";
 
 interface LoginErrors {
@@ -92,7 +88,6 @@ export default function Login() {
   const [errors, setErrors] = useState<LoginErrors>({});
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
   function updateFormData(fields: Partial<typeof formData>) {
     setFormData((prev) => ({ ...prev, ...fields }));
@@ -142,37 +137,6 @@ export default function Login() {
       setSubmitError(getFirebaseErrorMessage(error));
     } finally {
       setIsSubmitting(false);
-    }
-  }
-
-  async function handleGoogleLogin() {
-    setSubmitError("");
-    setIsGoogleSubmitting(true);
-
-    try {
-      const credential = await signInWithPopup(auth, googleProvider);
-      const firebaseUser = credential.user;
-      const providerCredential =
-        GoogleAuthProvider.credentialFromResult(credential);
-
-      const idToken =
-        providerCredential?.idToken || (await firebaseUser.getIdToken());
-
-      const data = await firebaseSignupRequest(idToken);
-
-      login(data, idToken);
-      navigate("/");
-    } catch (error: any) {
-      if (
-        error?.code === "auth/popup-closed-by-user" ||
-        error?.message?.includes("popup-closed-by-user")
-      ) {
-        setSubmitError("");
-      } else {
-        setSubmitError(getFirebaseErrorMessage(error));
-      }
-    } finally {
-      setIsGoogleSubmitting(false);
     }
   }
 
@@ -227,36 +191,11 @@ export default function Login() {
             size="lg"
             fullWidth
             loading={isSubmitting}
-            disabled={isSubmitting || isGoogleSubmitting}
+            disabled={isSubmitting}
           >
             {isSubmitting ? "Вхід..." : "Увійти"}
           </Button>
         </div>
-
-        <div className="relative mb-8">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200" />
-          </div>
-
-          <div className="relative flex justify-center">
-            <span className="bg-white px-4 font-display text-[14px] text-slate-400">
-              або
-            </span>
-          </div>
-        </div>
-
-        <Button
-          type="button"
-          variant="social"
-          size="lg"
-          fullWidth
-          onClick={handleGoogleLogin}
-          disabled={isSubmitting || isGoogleSubmitting}
-          loading={isGoogleSubmitting}
-        >
-          <LogIn size={18} strokeWidth={1.75} />
-          <span className="ml-2">Увійти через Google</span>
-        </Button>
       </form>
 
       <p className="mt-8 text-center font-display text-[15px] text-slate-500">

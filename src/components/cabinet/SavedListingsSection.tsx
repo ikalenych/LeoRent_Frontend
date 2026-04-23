@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight } from "lucide-react";
 import ConfirmModal from "./ConfirmModal";
 import ProfileSavedListingCard, {
   type ProfileListingCardData,
@@ -17,6 +18,9 @@ export default function SavedListingsSection({
   listings,
 }: SavedListingsSectionProps) {
   const { getFreshToken } = useAuth();
+  const mobileScrollerRef = useRef<HTMLDivElement | null>(null);
+  const pendingScrollLeftRef = useRef<number | null>(null);
+
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
   const [pendingRemove, setPendingRemove] =
@@ -36,7 +40,24 @@ export default function SavedListingsSection({
   const hasMore = visibleCount < displayItems.length;
   const isExpandedFromInitial = visibleCount >= EXPANDED_VISIBLE;
 
+  useEffect(() => {
+    if (pendingScrollLeftRef.current === null || !mobileScrollerRef.current) {
+      return;
+    }
+
+    mobileScrollerRef.current.scrollTo({
+      left: pendingScrollLeftRef.current,
+      behavior: "auto",
+    });
+
+    pendingScrollLeftRef.current = null;
+  }, [visibleCount]);
+
   function handleExpand() {
+    if (mobileScrollerRef.current) {
+      pendingScrollLeftRef.current = mobileScrollerRef.current.scrollLeft;
+    }
+
     if (visibleCount < EXPANDED_VISIBLE) {
       setVisibleCount(Math.min(EXPANDED_VISIBLE, displayItems.length));
       return;
@@ -105,7 +126,48 @@ export default function SavedListingsSection({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="md:hidden">
+            <div
+              ref={mobileScrollerRef}
+              className={`-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden ${displayItems.length === 1 ? "justify-center" : ""}`}
+            >
+              {visibleListings.map((listing) => (
+                <div
+                  key={listing.id}
+                  className="flex w-[calc(100%-2rem)] shrink-0 snap-center justify-center"
+                >
+                  <ProfileSavedListingCard
+                    {...listing}
+                    onRequestRemove={setPendingRemove}
+                  />
+                </div>
+              ))}
+
+              {hasMore ? (
+                <div className="flex w-[calc(100%-2rem)] shrink-0 snap-center justify-center">
+                  <button
+                    type="button"
+                    onClick={handleExpand}
+                    className="flex h-90 w-full max-w-75 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white px-6 text-center shadow-sm transition hover:border-slate-400 hover:bg-slate-50 min-[480px]:h-105 min-[480px]:max-w-97.5"
+                  >
+                    <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-700">
+                      <ArrowRight className="h-5 w-5" />
+                    </span>
+
+                    <span className="text-base font-semibold text-slate-900">
+                      {isExpandedFromInitial ? "Показати ще" : "Дивитись всі"}
+                    </span>
+
+                    <span className="mt-2 text-sm text-slate-500">
+                      Ще {displayItems.length - visibleCount} огол.
+                    </span>
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="hidden gap-6 md:grid md:grid-cols-2 xl:grid-cols-3">
             {visibleListings.map((listing) => (
               <ProfileSavedListingCard
                 key={listing.id}
@@ -116,7 +178,7 @@ export default function SavedListingsSection({
           </div>
 
           {hasMore ? (
-            <div className="mt-8 flex justify-center">
+            <div className="mt-8 hidden justify-center md:flex">
               <button
                 type="button"
                 onClick={handleExpand}

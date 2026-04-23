@@ -70,8 +70,8 @@ export default function OwnerListingsSection({
     <section className="mt-14">
       {listings.length ? (
         <>
-          <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
+          <div className="mb-6 flex flex-col gap-4 items-center md:flex-row md:items-end md:justify-between">
+            <div className="text-center md:text-left">
               <h2 className="text-[26px] font-bold text-slate-900">
                 Мої оголошення
               </h2>
@@ -83,7 +83,7 @@ export default function OwnerListingsSection({
             <button
               type="button"
               onClick={() => navigate("/listing")}
-              className="inline-flex h-12 items-center justify-center gap-2 self-start rounded-2xl bg-primary px-6 text-[15px] font-medium text-white shadow-[0_10px_25px_rgba(22,155,98,0.24)] transition hover:opacity-90 cursor-pointer"
+              className="inline-flex h-12 items-center justify-center gap-2 self-center rounded-2xl bg-primary px-6 text-[15px] font-medium text-white shadow-[0_10px_25px_rgba(22,155,98,0.24)] transition hover:opacity-90 cursor-pointer md:self-auto"
             >
               <Plus className="h-4 w-4" />
               Додати оголошення
