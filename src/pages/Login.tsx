@@ -1,15 +1,14 @@
 import { useState } from "react";
-import { Mail, Lock, LogIn } from "lucide-react";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import { Mail, Lock } from "lucide-react";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { AuthCard } from "../components/auth/AuthCard";
 import { Input } from "../components/ui/Input";
 import { Button } from "../components/ui/Button";
 import { ErrorAlert } from "../components/ui/ErrorAlert";
-import { auth, googleProvider } from "../lib/firebase";
-import { persistAuth } from "../lib/auth-api";
-import { mapApiErrorToUaMessage } from "../lib/error-messages";
-
-const API_URL = "https://leorent-backend.onrender.com";
+import { useAuth } from "../context/AuthContext";
+import { auth } from "../lib/firebase";
+import { firebaseSignupRequest } from "../lib/auth-api";
 
 interface LoginErrors {
   email?: string;
@@ -77,34 +76,10 @@ function validateEmailValue(email: string): EmailValidationResult {
   return { isValid: true, value: cleanEmail };
 }
 
-async function loginRequest(email: string, password: string) {
-  const response = await fetch(`${API_URL}/users/login/v1`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      email,
-      password,
-    }),
-  });
-
-  const data = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    throw new Error(
-      mapApiErrorToUaMessage(
-        response.status,
-        data,
-        "Не вдалося увійти в акаунт",
-      ),
-    );
-  }
-
-  return data;
-}
-
 export default function Login() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -113,7 +88,6 @@ export default function Login() {
   const [errors, setErrors] = useState<LoginErrors>({});
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
   function updateFormData(fields: Partial<typeof formData>) {
     setFormData((prev) => ({ ...prev, ...fields }));
@@ -148,68 +122,21 @@ export default function Login() {
     setIsSubmitting(true);
 
     try {
-      const data = await loginRequest(emailValidation.value, formData.password);
-
-      persistAuth(data);
-
-      if (
-        typeof data === "object" &&
-        data !== null &&
-        "user" in data &&
-        !localStorage.getItem("user")
-      ) {
-        localStorage.setItem(
-          "user",
-          JSON.stringify((data as { user: unknown }).user),
-        );
-      }
-
-      // window.location.href = "/";
-    } catch (error) {
-      setSubmitError(
-        error instanceof Error ? error.message : "Сталася помилка при вході",
+      const credential = await signInWithEmailAndPassword(
+        auth,
+        emailValidation.value,
+        formData.password,
       );
+
+      const idToken = await credential.user.getIdToken();
+      const data = await firebaseSignupRequest(idToken);
+
+      login(data, idToken);
+      navigate("/");
+    } catch (error: any) {
+      setSubmitError(getFirebaseErrorMessage(error));
     } finally {
       setIsSubmitting(false);
-    }
-  }
-
-  async function handleGoogleLogin() {
-    setSubmitError("");
-    setIsGoogleSubmitting(true);
-
-    try {
-      const credential = await signInWithPopup(auth, googleProvider);
-      const firebaseUser = credential.user;
-      const providerCredential =
-        GoogleAuthProvider.credentialFromResult(credential);
-
-      const idToken =
-        providerCredential?.idToken || (await firebaseUser.getIdToken());
-
-      localStorage.setItem("token", idToken);
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          email: firebaseUser.email,
-          firebase_uid: firebaseUser.uid,
-          display_name: firebaseUser.displayName ?? null,
-          photo_url: firebaseUser.photoURL ?? null,
-        }),
-      );
-
-      //  window.location.href = "/";
-    } catch (error: any) {
-      if (
-        error?.code === "auth/popup-closed-by-user" ||
-        error?.message?.includes("popup-closed-by-user")
-      ) {
-        setSubmitError("");
-      } else {
-        setSubmitError(getFirebaseErrorMessage(error));
-      }
-    } finally {
-      setIsGoogleSubmitting(false);
     }
   }
 
@@ -264,36 +191,11 @@ export default function Login() {
             size="lg"
             fullWidth
             loading={isSubmitting}
-            disabled={isSubmitting || isGoogleSubmitting}
+            disabled={isSubmitting}
           >
             {isSubmitting ? "Вхід..." : "Увійти"}
           </Button>
         </div>
-
-        <div className="relative mb-8">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200" />
-          </div>
-
-          <div className="relative flex justify-center">
-            <span className="bg-white px-4 font-display text-[14px] text-slate-400">
-              або
-            </span>
-          </div>
-        </div>
-
-        <Button
-          type="button"
-          variant="social"
-          size="lg"
-          fullWidth
-          onClick={handleGoogleLogin}
-          disabled={isSubmitting || isGoogleSubmitting}
-          loading={isGoogleSubmitting}
-        >
-          <LogIn size={18} strokeWidth={1.75} />
-          <span className="ml-2">Увійти через Google</span>
-        </Button>
       </form>
 
       <p className="mt-8 text-center font-display text-[15px] text-slate-500">

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { signInWithPopup } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { SignUpStepOne } from "../components/auth/SignUpStepOne";
 import { SignUpStepTwo } from "../components/auth/SignUpStepTwo";
 import { SignUpStepThree } from "../components/auth/SignUpStepThree";
-import { auth, googleProvider } from "../lib/firebase";
-import { persistAuth } from "../lib/auth-api";
-import { mapApiErrorToUaMessage } from "../lib/error-messages";
+import { useAuth } from "../context/AuthContext";
+import { auth } from "../lib/firebase";
+import { firebaseAuthRequest } from "../lib/auth-api";
 
 export type UserRole = "owner" | "realtor" | "tenant" | "";
 
@@ -35,7 +36,6 @@ type EmailValidationResult =
   | { isValid: true; value: string }
   | { isValid: false; error: string };
 
-const API_URL = "https://leorent-backend.onrender.com";
 const SIGN_UP_STORAGE_KEY = "leorent-signup";
 
 const initialFormData: SignUpFormData = {
@@ -169,39 +169,9 @@ function validateEmailValue(email: string): EmailValidationResult {
   return { isValid: true, value: cleanEmail };
 }
 
-async function signupRequest(payload: {
-  email: string;
-  username: string;
-  first_name: string;
-  last_name: string;
-  phone: string;
-  password: string;
-  user_type: "AGENT" | "OWNER" | "DEFAULT";
-}) {
-  const response = await fetch(`${API_URL}/users/signup/v1`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  const data = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    throw new Error(
-      mapApiErrorToUaMessage(
-        response.status,
-        data,
-        "Не вдалося створити акаунт",
-      ),
-    );
-  }
-
-  return data;
-}
-
 export default function SignUp() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const [persistedState] = useState(() => getInitialPersistedState());
 
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(
@@ -216,7 +186,6 @@ export default function SignUp() {
   const [stepTwoError, setStepTwoError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   useEffect(() => {
     const persistedData: PersistedSignUpState = {
@@ -313,45 +282,6 @@ export default function SignUp() {
     return Object.keys(errors).length === 0;
   }
 
-  async function handleStepOneGoogle() {
-    setSubmitError("");
-    setIsGoogleLoading(true);
-
-    try {
-      const credential = await signInWithPopup(auth, googleProvider);
-      const firebaseUser = credential.user;
-
-      const idToken = await firebaseUser.getIdToken();
-
-      localStorage.setItem("token", idToken);
-
-      updateFormData({
-        email: firebaseUser.email || "",
-        password: "google-auth",
-        confirmPassword: "google-auth",
-        firstName: firebaseUser.displayName?.split(" ")[0] || "",
-        lastName: firebaseUser.displayName?.split(" ").slice(1).join(" ") || "",
-      });
-
-      nextStep();
-    } catch (error: any) {
-      if (
-        error?.code === "auth/popup-closed-by-user" ||
-        error?.message?.includes("popup-closed-by-user")
-      ) {
-        setSubmitError("");
-      } else {
-        setSubmitError(
-          error instanceof Error
-            ? error.message
-            : "Сталася помилка при вході через Google",
-        );
-      }
-    } finally {
-      setIsGoogleLoading(false);
-    }
-  }
-
   function handleStepOneSubmit() {
     setSubmitError("");
     if (!validateStepOne()) return;
@@ -396,19 +326,33 @@ export default function SignUp() {
     setIsSubmitting(true);
 
     try {
-      const data = await signupRequest({
-        email: emailValidation.value,
-        username: normalizedUsername,
+      let idToken = localStorage.getItem("token");
+
+      if (!idToken || formData.password !== "google-auth") {
+        const credential = await createUserWithEmailAndPassword(
+          auth,
+          emailValidation.value,
+          formData.password,
+        );
+
+        await updateProfile(credential.user, {
+          displayName: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+        });
+
+        idToken = await credential.user.getIdToken();
+      }
+
+      const data = await firebaseAuthRequest({
+        id_token: idToken,
         first_name: formData.firstName.trim(),
         last_name: formData.lastName.trim(),
         phone: formData.phone.trim(),
-        password: formData.password,
         user_type: mapRoleToApiUserType(formData.role),
       });
 
-      persistAuth(data);
+      login(data, idToken);
       localStorage.removeItem(SIGN_UP_STORAGE_KEY);
-      window.location.href = "/";
+      navigate("/");
     } catch (error: any) {
       setSubmitError(
         error instanceof Error
@@ -435,7 +379,6 @@ export default function SignUp() {
           !formData.password.trim() ||
           !formData.confirmPassword.trim()
         }
-        isGoogleLoading={isGoogleLoading}
         onChange={(fields) => {
           updateFormData(fields);
           setStepOneErrors((prev) => ({
@@ -448,7 +391,6 @@ export default function SignUp() {
           setSubmitError("");
         }}
         onNext={handleStepOneSubmit}
-        onGoogleClick={handleStepOneGoogle}
       />
     );
   }

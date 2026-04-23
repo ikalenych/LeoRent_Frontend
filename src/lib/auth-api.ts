@@ -1,4 +1,7 @@
 const API_URL = "https://leorent-backend.onrender.com";
+// TODO: Make a line above static and singleton variable to be accessed
+// In different files since there are mulptiple definitions of it
+
 
 type ApiErrorDetailItem = {
   msg?: string;
@@ -112,5 +115,15 @@ export function persistAuth(data: unknown, fallbackIdToken?: string) {
       "user",
       JSON.stringify((data as { user: unknown }).user),
     );
+    return;
   }
+
+  if (typeof data === "object" && data !== null) {
+    localStorage.setItem("user", JSON.stringify(data));
+  }
+}
+
+export function clearAuth() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
 }

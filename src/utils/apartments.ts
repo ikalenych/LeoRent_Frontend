@@ -36,7 +36,7 @@ export function filterApartments(
     if (filters.rentType !== "all" && a.rentType !== filters.rentType)
       return false;
     if (filters.withFurniture && !a.details?.furniture) return false;
-    if (filters.petsAllowed && !a.details?.pets) return false;
+    if (filters.petsAllowed && !a.details?.animals) return false;
     return true;
   });
 }

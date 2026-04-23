@@ -32,33 +32,37 @@ export default function ProfileSavedListingCard({
   floorInHouse,
   photos,
   ownerType,
+  rentType,
   onRequestRemove,
 }: ProfileSavedListingCardProps) {
   const navigate = useNavigate();
 
   const isRealtor = ownerType === "Rieltor";
+  const isDaily = rentType === "Daily";
   const formattedCost = cost.toLocaleString("uk-UA");
 
   return (
     <div
       onClick={() => navigate(`/listings/${id}`)}
-      className="group w-full max-w-[340px] cursor-pointer overflow-hidden rounded-3xl bg-white shadow-[0_8px_30px_rgba(15,23,42,0.06)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_14px_36px_rgba(15,23,42,0.10)]"
+      className="group mx-auto h-90 w-full max-w-75 shrink-0 overflow-hidden rounded-2xl bg-surface font-display shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg min-[480px]:h-105 min-[480px]:max-w-97.5"
     >
-      <div className="relative h-[210px] w-full overflow-hidden">
+      <div className="relative h-47.5 w-full overflow-hidden min-[480px]:h-64">
         <img
           src={photos[0]?.url ?? "/placeholder.jpg"}
           alt={title}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
 
         <span
-          className={`absolute left-3 top-3 rounded-xl px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${
-            isRealtor
-              ? "bg-[#DCE8FF] text-[#5B7BEA]"
-              : "bg-[#57E3B1] text-[#0E6B4D]"
+          className={`absolute top-3 left-3 rounded-full px-3 py-1 text-xs font-semibold text-white ${
+            isRealtor ? "bg-realtor" : "bg-primary"
           }`}
         >
           {isRealtor ? "Рієлтор" : "Власник"}
+        </span>
+
+        <span className="absolute top-3 right-3 rounded-full bg-white px-3 py-1 text-sm font-semibold text-text-title shadow-sm">
+          {formattedCost} ₴
         </span>
 
         <button
@@ -77,24 +81,34 @@ export default function ProfileSavedListingCard({
               floorInHouse,
               photos,
               ownerType,
-              rentType: "Monthly",
+              rentType,
             });
           }}
-          className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-sm transition hover:bg-white"
+          className="absolute right-3 bottom-3 cursor-pointer rounded-full bg-white/80 p-2 shadow-sm backdrop-blur-sm transition-colors duration-150 hover:bg-white"
           aria-label="Видалити зі збережених"
         >
           <Heart className="h-4 w-4 fill-rose-500 text-rose-500" />
         </button>
       </div>
 
-      <div className="flex min-h-[150px] flex-col justify-between px-4 py-4">
-        <div>
-          <h3 className="text-[18px] font-bold leading-6 text-slate-900">
-            {formattedCost} грн
+      <div className="flex h-42.5 flex-col justify-between px-4 py-3 min-[480px]:h-41">
+        <div className="flex flex-col gap-1">
+          <span
+            className={`self-start rounded-full px-2.5 py-0.5 text-xs leading-5 font-medium ${
+              isDaily
+                ? "bg-emerald-100 text-emerald-700"
+                : "bg-gray-100 text-gray-500"
+            }`}
+          >
+            {isDaily ? "Подобово" : "Тривала оренда"}
+          </span>
+
+          <h3 className="line-clamp-1 text-base leading-snug font-semibold text-text-title transition-colors duration-200 group-hover:text-primary">
+            {title}
           </h3>
 
-          <div className="mt-2 flex items-center gap-1 text-[15px] text-slate-500">
-            <MapPin className="h-4 w-4 shrink-0" />
+          <div className="flex items-center gap-1 text-sm text-text-description">
+            <MapPin className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate">
               {location}
               {district ? `, ${district}` : ""}
@@ -102,7 +116,7 @@ export default function ProfileSavedListingCard({
           </div>
         </div>
 
-        <div className="mt-5 flex items-center gap-4 border-t border-slate-100 pt-4 text-[14px] text-slate-500">
+        <div className="flex items-center gap-4 border-t border-gray-100 pt-3 text-sm text-text-description">
           <span className="flex items-center gap-1.5">
             <BedDouble className="h-4 w-4" />
             {rooms} к.
@@ -115,7 +129,7 @@ export default function ProfileSavedListingCard({
 
           <span className="flex items-center gap-1.5">
             <Layers className="h-4 w-4" />
-            {floor}/{floorInHouse}
+            {floor}/{floorInHouse} пов.
           </span>
         </div>
       </div>

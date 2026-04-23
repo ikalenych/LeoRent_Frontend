@@ -11,10 +11,10 @@ export type ApartmentDetailsMap = {
   parking?: 0 | 1;
   furniture?: 0 | 1;
   elevator?: 0 | 1;
-  washer?: 0 | 1;
-  ac?: 0 | 1;
+  washing_machine?: 0 | 1;
+  conditioner?: 0 | 1;
   balcony?: 0 | 1;
-  pets?: 0 | 1;
+  animals?: 0 | 1;
 };
 
 export interface ApartmentCardProps {

@@ -1,4 +1,4 @@
-import { Mail, Lock, ShieldCheck, LogIn } from "lucide-react";
+import { Mail, Lock, ShieldCheck } from "lucide-react";
 import { AuthCard } from "./AuthCard";
 import { StepBadge } from "./StepBadge";
 import { Input } from "../ui/Input";
@@ -15,14 +15,12 @@ interface SignUpStepOneProps {
   errors: StepOneErrors;
   submitError?: string;
   isNextDisabled?: boolean;
-  isGoogleLoading?: boolean;
   onChange: (fields: {
     email?: string;
     password?: string;
     confirmPassword?: string;
   }) => void;
   onNext: () => void;
-  onGoogleClick?: () => void;
 }
 
 export function SignUpStepOne({
@@ -30,10 +28,8 @@ export function SignUpStepOne({
   errors,
   submitError,
   isNextDisabled = false,
-  isGoogleLoading = false,
   onChange,
   onNext,
-  onGoogleClick,
 }: SignUpStepOneProps) {
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -108,31 +104,6 @@ export function SignUpStepOne({
             Продовжити
           </Button>
         </div>
-
-        <div className="relative mb-8">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200" />
-          </div>
-
-          <div className="relative flex justify-center">
-            <span className="bg-white px-4 font-display text-[14px] text-slate-400">
-              або
-            </span>
-          </div>
-        </div>
-
-        <Button
-          type="button"
-          variant="social"
-          size="lg"
-          fullWidth
-          onClick={onGoogleClick}
-          loading={isGoogleLoading}
-          disabled={isGoogleLoading}
-        >
-          <LogIn size={18} strokeWidth={1.75} />
-          Продовжити реєстрацію через Google
-        </Button>
       </form>
 
       <p className="mt-8 text-center font-display text-[15px] text-slate-500">

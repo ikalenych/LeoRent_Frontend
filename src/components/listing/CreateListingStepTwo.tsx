@@ -154,7 +154,7 @@ export function CreateListingStepTwo({
           </div>
 
           <p className="text-[15px] text-text-title">
-            AI звірить документ з адресою оголошення та вашим ПІБ з акаунту
+            Система звірить документ з адресою оголошення та вашим ПІБ з акаунту
           </p>
         </div>
 
@@ -301,7 +301,7 @@ export function CreateListingStepTwo({
 
           {verification.status === "verifying" && (
             <p className="mt-4 text-[14px] text-white/60">
-              AI перевіряє документ, будь ласка, зачекайте...
+              Перевіряємо документ, будь ласка, зачекайте...
             </p>
           )}
 
