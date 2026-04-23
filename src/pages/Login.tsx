@@ -1,15 +1,18 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Mail, Lock, LogIn } from "lucide-react";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 import { AuthCard } from "../components/auth/AuthCard";
 import { Input } from "../components/ui/Input";
 import { Button } from "../components/ui/Button";
 import { ErrorAlert } from "../components/ui/ErrorAlert";
+import { useAuth } from "../context/AuthContext";
 import { auth, googleProvider } from "../lib/firebase";
-import { persistAuth } from "../lib/auth-api";
-import { mapApiErrorToUaMessage } from "../lib/error-messages";
-
-const API_URL = "https://leorent-backend.onrender.com";
+import { firebaseSignupRequest } from "../lib/auth-api";
 
 interface LoginErrors {
   email?: string;
@@ -77,34 +80,10 @@ function validateEmailValue(email: string): EmailValidationResult {
   return { isValid: true, value: cleanEmail };
 }
 
-async function loginRequest(email: string, password: string) {
-  const response = await fetch(`${API_URL}/users/login/v1`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      email,
-      password,
-    }),
-  });
-
-  const data = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    throw new Error(
-      mapApiErrorToUaMessage(
-        response.status,
-        data,
-        "Не вдалося увійти в акаунт",
-      ),
-    );
-  }
-
-  return data;
-}
-
 export default function Login() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -148,27 +127,19 @@ export default function Login() {
     setIsSubmitting(true);
 
     try {
-      const data = await loginRequest(emailValidation.value, formData.password);
-
-      persistAuth(data);
-
-      if (
-        typeof data === "object" &&
-        data !== null &&
-        "user" in data &&
-        !localStorage.getItem("user")
-      ) {
-        localStorage.setItem(
-          "user",
-          JSON.stringify((data as { user: unknown }).user),
-        );
-      }
-
-      // window.location.href = "/";
-    } catch (error) {
-      setSubmitError(
-        error instanceof Error ? error.message : "Сталася помилка при вході",
+      const credential = await signInWithEmailAndPassword(
+        auth,
+        emailValidation.value,
+        formData.password,
       );
+
+      const idToken = await credential.user.getIdToken();
+      const data = await firebaseSignupRequest(idToken);
+
+      login(data, idToken);
+      navigate("/");
+    } catch (error: any) {
+      setSubmitError(getFirebaseErrorMessage(error));
     } finally {
       setIsSubmitting(false);
     }
@@ -187,18 +158,10 @@ export default function Login() {
       const idToken =
         providerCredential?.idToken || (await firebaseUser.getIdToken());
 
-      localStorage.setItem("token", idToken);
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          email: firebaseUser.email,
-          firebase_uid: firebaseUser.uid,
-          display_name: firebaseUser.displayName ?? null,
-          photo_url: firebaseUser.photoURL ?? null,
-        }),
-      );
+      const data = await firebaseSignupRequest(idToken);
 
-      //  window.location.href = "/";
+      login(data, idToken);
+      navigate("/");
     } catch (error: any) {
       if (
         error?.code === "auth/popup-closed-by-user" ||
