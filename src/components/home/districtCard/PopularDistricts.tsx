@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import DistrictCard from "./DistrictCard";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
-const placeholder = "https://placehold.co/600x400?text=Lviv";
 
 type DistrictItem = {
   id: number;
