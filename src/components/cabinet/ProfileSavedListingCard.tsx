@@ -32,33 +32,37 @@ export default function ProfileSavedListingCard({
   floorInHouse,
   photos,
   ownerType,
+  rentType,
   onRequestRemove,
 }: ProfileSavedListingCardProps) {
   const navigate = useNavigate();
 
   const isRealtor = ownerType === "Rieltor";
+  const isDaily = rentType === "Daily";
   const formattedCost = cost.toLocaleString("uk-UA");
 
   return (
     <div
       onClick={() => navigate(`/listings/${id}`)}
-      className="group w-full max-w-[340px] cursor-pointer overflow-hidden rounded-3xl bg-white shadow-[0_8px_30px_rgba(15,23,42,0.06)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_14px_36px_rgba(15,23,42,0.10)]"
+      className="group bg-surface rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 w-75 h-90 min-[480px]:w-97.5 min-[480px]:h-105 font-display cursor-pointer shrink-0"
     >
-      <div className="relative h-[210px] w-full overflow-hidden">
+      <div className="relative w-full h-47.5 min-[480px]:h-64 overflow-hidden">
         <img
           src={photos[0]?.url ?? "/placeholder.jpg"}
           alt={title}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
 
         <span
-          className={`absolute left-3 top-3 rounded-xl px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${
-            isRealtor
-              ? "bg-[#DCE8FF] text-[#5B7BEA]"
-              : "bg-[#57E3B1] text-[#0E6B4D]"
+          className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold text-white ${
+            isRealtor ? "bg-realtor" : "bg-primary"
           }`}
         >
           {isRealtor ? "Рієлтор" : "Власник"}
+        </span>
+
+        <span className="absolute top-3 right-3 bg-white text-text-title font-semibold text-sm px-3 py-1 rounded-full shadow-sm">
+          {formattedCost} ₴
         </span>
 
         <button
@@ -77,24 +81,34 @@ export default function ProfileSavedListingCard({
               floorInHouse,
               photos,
               ownerType,
-              rentType: "Monthly",
+              rentType,
             });
           }}
-          className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-sm transition hover:bg-white"
+          className="absolute bottom-3 right-3 bg-white/80 backdrop-blur-sm hover:bg-white p-2 rounded-full transition-colors duration-150 shadow-sm cursor-pointer"
           aria-label="Видалити зі збережених"
         >
-          <Heart className="h-4 w-4 fill-rose-500 text-rose-500" />
+          <Heart className="w-4 h-4 fill-rose-500 text-rose-500" />
         </button>
       </div>
 
-      <div className="flex min-h-[150px] flex-col justify-between px-4 py-4">
-        <div>
-          <h3 className="text-[18px] font-bold leading-6 text-slate-900">
-            {formattedCost} грн
+      <div className="px-4 py-3 flex flex-col justify-between h-42.5 min-[480px]:h-41">
+        <div className="flex flex-col gap-1">
+          <span
+            className={`self-start text-xs font-medium px-2.5 py-0.5 rounded-full leading-5 ${
+              isDaily
+                ? "bg-emerald-100 text-emerald-700"
+                : "bg-gray-100 text-gray-500"
+            }`}
+          >
+            {isDaily ? "Подобово" : "Тривала оренда"}
+          </span>
+
+          <h3 className="text-text-title group-hover:text-primary font-semibold text-base leading-snug line-clamp-1 transition-colors duration-200">
+            {title}
           </h3>
 
-          <div className="mt-2 flex items-center gap-1 text-[15px] text-slate-500">
-            <MapPin className="h-4 w-4 shrink-0" />
+          <div className="flex items-center gap-1 text-text-description text-sm">
+            <MapPin className="w-3.5 h-3.5 shrink-0" />
             <span className="truncate">
               {location}
               {district ? `, ${district}` : ""}
@@ -102,20 +116,20 @@ export default function ProfileSavedListingCard({
           </div>
         </div>
 
-        <div className="mt-5 flex items-center gap-4 border-t border-slate-100 pt-4 text-[14px] text-slate-500">
+        <div className="flex items-center gap-4 text-text-description text-sm border-t border-gray-100 pt-3">
           <span className="flex items-center gap-1.5">
-            <BedDouble className="h-4 w-4" />
+            <BedDouble className="w-4 h-4" />
             {rooms} к.
           </span>
 
           <span className="flex items-center gap-1.5">
-            <LayoutGrid className="h-4 w-4" />
+            <LayoutGrid className="w-4 h-4" />
             {square} м²
           </span>
 
           <span className="flex items-center gap-1.5">
-            <Layers className="h-4 w-4" />
-            {floor}/{floorInHouse}
+            <Layers className="w-4 h-4" />
+            {floor}/{floorInHouse} пов.
           </span>
         </div>
       </div>

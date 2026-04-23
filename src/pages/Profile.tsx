@@ -1,6 +1,58 @@
+import { useAuth } from "../context/AuthContext";
 import UserProfileLayout from "../components/cabinet/UserProfileLayout";
 
+type BackendUser = {
+  id: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  user_type?: "OWNER" | "AGENT" | "DEFAULT";
+  firebase_uid?: string;
+  is_verified?: boolean;
+};
+
+function getFullName(user: BackendUser | null) {
+  if (!user) return "Користувач";
+
+  const fullName = `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim();
+  if (fullName) return fullName;
+
+  if (user.first_name?.trim()) return user.first_name.trim();
+
+  if (user.email?.trim()) return user.email.split("@")[0];
+
+  return "Користувач";
+}
+
+function mapUserTypeToProfileRole(
+  userType?: "OWNER" | "AGENT" | "DEFAULT",
+): "Tenant" | "Owner" | "Rieltor" {
+  switch (userType) {
+    case "OWNER":
+      return "Owner";
+    case "AGENT":
+      return "Rieltor";
+    default:
+      return "Tenant";
+  }
+}
+
+function mapUserTypeToRoleLabel(userType?: "OWNER" | "AGENT" | "DEFAULT") {
+  switch (userType) {
+    case "OWNER":
+      return "Власник";
+    case "AGENT":
+      return "Рієлтор";
+    default:
+      return "Орендар";
+  }
+}
+
 export default function Profile() {
+  const authUser = useAuth().user;
+  const storedUser = authUser as BackendUser | null;
+
   const savedListings = [
     {
       id: "1",
@@ -38,114 +90,6 @@ export default function Profile() {
         },
       ],
     },
-    {
-      id: "3",
-      title: "1-к квартира",
-      location: "вул. Коновальця",
-      district: "Франківський",
-      cost: 15500,
-      rooms: 1,
-      square: 42,
-      floor: 2,
-      floorInHouse: 4,
-      ownerType: "Owner" as const,
-      rentType: "Monthly" as const,
-      photos: [
-        {
-          url: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=1200&auto=format&fit=crop",
-        },
-      ],
-    },
-    {
-      id: "4",
-      title: "2-к квартира, Новобудова",
-      location: "вул. Наукова",
-      district: "Франківський",
-      cost: 21000,
-      rooms: 2,
-      square: 61,
-      floor: 6,
-      floorInHouse: 10,
-      ownerType: "Rieltor" as const,
-      rentType: "Monthly" as const,
-      photos: [
-        {
-          url: "https://images.unsplash.com/photo-1484154218962-a197022b5858?q=80&w=1200&auto=format&fit=crop",
-        },
-      ],
-    },
-    {
-      id: "5",
-      title: "1-к квартира біля парку",
-      location: "вул. Стрийська",
-      district: "Сихівський",
-      cost: 14000,
-      rooms: 1,
-      square: 35,
-      floor: 4,
-      floorInHouse: 9,
-      ownerType: "Owner" as const,
-      rentType: "Monthly" as const,
-      photos: [
-        {
-          url: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200&auto=format&fit=crop",
-        },
-      ],
-    },
-    {
-      id: "6",
-      title: "3-к квартира",
-      location: "вул. Зелена",
-      district: "Личаківський",
-      cost: 26000,
-      rooms: 3,
-      square: 74,
-      floor: 7,
-      floorInHouse: 9,
-      ownerType: "Rieltor" as const,
-      rentType: "Monthly" as const,
-      photos: [
-        {
-          url: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?q=80&w=1200&auto=format&fit=crop",
-        },
-      ],
-    },
-    {
-      id: "7",
-      title: "3-к квартира",
-      location: "вул. Зелена",
-      district: "Личаківський",
-      cost: 26000,
-      rooms: 3,
-      square: 74,
-      floor: 7,
-      floorInHouse: 9,
-      ownerType: "Rieltor" as const,
-      rentType: "Monthly" as const,
-      photos: [
-        {
-          url: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?q=80&w=1200&auto=format&fit=crop",
-        },
-      ],
-    },
-    {
-      id: "8",
-      title: "3-к квартира",
-      location: "вул. Зелена",
-      district: "Личаківський",
-      cost: 26000,
-      rooms: 3,
-      square: 74,
-      floor: 7,
-      floorInHouse: 9,
-      ownerType: "Rieltor" as const,
-      rentType: "Monthly" as const,
-      photos: [
-        {
-          url: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?q=80&w=1200&auto=format&fit=crop",
-        },
-      ],
-    },
   ];
 
   const ownerListings = [
@@ -155,8 +99,6 @@ export default function Profile() {
       address: "вул. Галицька, 14",
       district: "Галицький",
       price: 22500,
-      status: "active" as const,
-      views: 1248,
       image:
         "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=400&auto=format&fit=crop",
     },
@@ -166,31 +108,16 @@ export default function Profile() {
       address: "вул. Стрийська, 45",
       district: "Сихівський",
       price: 14000,
-      status: "archived" as const,
-      views: 452,
-      image:
-        "https://images.unsplash.com/photo-1484154218962-a197022b5858?q=80&w=400&auto=format&fit=crop",
-    },
-    {
-      id: "103",
-      title: "1-к Квартира, Стрийська",
-      address: "вул. Стрийська, 45",
-      district: "Сихівський",
-      price: 14500,
-      status: "archived" as const,
-      views: 452,
       image:
         "https://images.unsplash.com/photo-1484154218962-a197022b5858?q=80&w=400&auto=format&fit=crop",
     },
   ];
 
   const user = {
-    fullName: "Олександр Левченко",
-    email: "o.levchenko@orendalviv.ua",
-    role: "Rieltor" as const,
-    roleLabel: "Ріелтор",
-    avatarUrl:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400&auto=format&fit=crop",
+    fullName: getFullName(storedUser),
+    email: storedUser?.email ?? "Немає email",
+    role: mapUserTypeToProfileRole(storedUser?.user_type),
+    roleLabel: mapUserTypeToRoleLabel(storedUser?.user_type),
   };
 
   return (
