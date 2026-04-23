@@ -7,7 +7,6 @@ import { SignUpStepThree } from "../components/auth/SignUpStepThree";
 import { useAuth } from "../context/AuthContext";
 import { auth } from "../lib/firebase";
 import { firebaseAuthRequest } from "../lib/auth-api";
-import { mapApiErrorToUaMessage } from "../lib/error-messages";
 
 export type UserRole = "owner" | "realtor" | "tenant" | "";
 
@@ -37,7 +36,6 @@ type EmailValidationResult =
   | { isValid: true; value: string }
   | { isValid: false; error: string };
 
-const API_URL = "https://leorent-backend.onrender.com";
 const SIGN_UP_STORAGE_KEY = "leorent-signup";
 
 const initialFormData: SignUpFormData = {
@@ -169,38 +167,6 @@ function validateEmailValue(email: string): EmailValidationResult {
   }
 
   return { isValid: true, value: cleanEmail };
-}
-
-async function signupRequest(payload: {
-  email: string;
-  username: string;
-  first_name: string;
-  last_name: string;
-  phone: string;
-  password: string;
-  user_type: "AGENT" | "OWNER" | "DEFAULT";
-}) {
-  const response = await fetch(`${API_URL}/users/signup/v1`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  const data = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    throw new Error(
-      mapApiErrorToUaMessage(
-        response.status,
-        data,
-        "Не вдалося створити акаунт",
-      ),
-    );
-  }
-
-  return data;
 }
 
 export default function SignUp() {
