@@ -1,4 +1,5 @@
 const API_URL = import.meta.env.VITE_API_URL as string;
+
 function getToken() {
   return localStorage.getItem("token");
 }
@@ -23,6 +24,7 @@ export interface BackendApartmentPreview {
   district: string;
   is_liked_by_current_user: boolean;
   owner_type: string;
+  pictures: { id_: string; url: string }[];
   picture: string | null;
 }
 
@@ -70,11 +72,15 @@ export interface BackendUser {
   last_name: string | null;
 }
 
+/* -------------------- NORMAL APARTMENTS -------------------- */
+
 export async function fetchApartments(): Promise<BackendApartmentListResponse> {
   const res = await fetch(`${API_URL}/apartment/`, {
     headers: { ...authHeaders() },
   });
+
   if (!res.ok) throw new Error("Не вдалося завантажити оголошення");
+
   return res.json();
 }
 
@@ -84,7 +90,9 @@ export async function fetchApartmentById(
   const res = await fetch(`${API_URL}/apartment/${id}`, {
     headers: { ...authHeaders() },
   });
+
   if (!res.ok) throw new Error("Квартиру не знайдено");
+
   return res.json();
 }
 
@@ -94,6 +102,8 @@ export async function toggleApartmentLike(id: string): Promise<void> {
     headers: { ...authHeaders() },
   });
 }
+
+/* -------------------- 🔥 AI GROQ SEARCH (UPDATED) -------------------- */
 
 export async function aiSearchApartments(
   prompt: string,
@@ -108,24 +118,28 @@ export async function aiSearchApartments(
   });
 
   const headers: Record<string, string> = {};
+
   const authToken = token ?? getToken();
   if (authToken) {
     headers.Authorization = `Bearer ${authToken}`;
   }
 
-  const res = await fetch(`${API_URL}/filter/ai-search?${params.toString()}`, {
-    method: "GET",
-    headers,
-  });
+  const res = await fetch(
+    `${API_URL}/filter/ai-prompt/groq?${params.toString()}`,
+    {
+      method: "GET",
+      headers,
+    },
+  );
 
   if (res.status === 429) {
-    const retryAfter = res.headers.get("retry-after") || 120;
+    const retryAfter = res.headers.get("retry-after") || "120";
     throw new Error(`AI недоступний (ліміт). Спробуй через ${retryAfter}с`);
   }
 
   if (!res.ok) {
-    const data = await res.json();
-    throw new Error(data.detail || "AI пошук не спрацював");
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.detail || "AI Groq пошук не спрацював");
   }
 
   return res.json();
