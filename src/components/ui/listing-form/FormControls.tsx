@@ -95,7 +95,7 @@ export function BaseInput({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      inputMode={inputMode}
+      inputMode={inputMode as React.HTMLAttributes<HTMLInputElement>["inputMode"]}
       pattern={pattern}
       maxLength={maxLength}
       className={`h-14 w-full rounded-2xl border px-4 text-[16px] font-display outline-none transition placeholder:text-[14px] sm:placeholder:text-[16px] ${
