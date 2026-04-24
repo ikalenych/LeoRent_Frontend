@@ -73,6 +73,9 @@ export function BaseInput({
   value,
   onChange,
   error,
+  inputMode,
+  pattern,
+  maxLength,
 }: {
   id?: string;
   placeholder?: string;
@@ -81,6 +84,9 @@ export function BaseInput({
   value?: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   error?: string;
+  inputMode?: string;
+  pattern?: string;
+  maxLength?: number;
 }) {
   return (
     <input
@@ -89,6 +95,9 @@ export function BaseInput({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
+      inputMode={inputMode}
+      pattern={pattern}
+      maxLength={maxLength}
       className={`h-14 w-full rounded-2xl border px-4 text-[16px] font-display outline-none transition placeholder:text-[14px] sm:placeholder:text-[16px] ${
         dark
           ? error

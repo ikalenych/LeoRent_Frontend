@@ -8,6 +8,7 @@ import { useAuth } from "../../context/AuthContext";
 
 interface SavedListingsSectionProps {
   listings: ProfileListingCardData[];
+  onRemoveSuccess?: () => void;
 }
 
 const INITIAL_VISIBLE = 3;
@@ -16,21 +17,18 @@ const LOAD_MORE_STEP = 3;
 
 export default function SavedListingsSection({
   listings,
+  onRemoveSuccess,
 }: SavedListingsSectionProps) {
   const { getFreshToken } = useAuth();
   const mobileScrollerRef = useRef<HTMLDivElement | null>(null);
   const pendingScrollLeftRef = useRef<number | null>(null);
 
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
-  const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
   const [pendingRemove, setPendingRemove] =
     useState<ProfileListingCardData | null>(null);
   const [isRemoving, setIsRemoving] = useState(false);
 
-  const displayItems = useMemo(
-    () => listings.filter((item) => !deletedIds.has(item.id)),
-    [listings, deletedIds],
-  );
+  const displayItems = useMemo(() => listings, [listings]);
 
   const visibleListings = useMemo(
     () => displayItems.slice(0, visibleCount),
@@ -97,10 +95,7 @@ export default function SavedListingsSection({
         throw new Error("Failed to toggle like");
       }
 
-      setDeletedIds((prev) => new Set([...prev, pendingRemove.id]));
-      setVisibleCount((prev) =>
-        Math.min(prev, Math.max(displayItems.length - 1, INITIAL_VISIBLE)),
-      );
+      onRemoveSuccess?.();
       setPendingRemove(null);
     } catch (error) {
       console.error("Failed to remove saved listing:", error);

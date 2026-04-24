@@ -51,6 +51,9 @@ export function ListingLocationSection({
             placeholder="Наприклад: вул. Шевченка, 12"
             error={errors.address}
           />
+          <p className="mt-2 text-sm text-text-description/70">
+            Введіть тільки вулицю та номер будинку. Не додавайте «Львів».
+          </p>
           <ErrorText message={errors.address} />
         </div>
 
@@ -240,8 +243,11 @@ export function ListingPropertyDetailsSection({
             <BaseInput
               id="area"
               value={area}
-              onChange={(e) => setArea(e.target.value)}
+              onChange={(e) => setArea(e.target.value.replace(/\D/g, ""))}
               placeholder="Наприклад: 65"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={3}
               error={errors.area}
             />
             <ErrorText message={errors.area} />
@@ -255,8 +261,11 @@ export function ListingPropertyDetailsSection({
               <BaseInput
                 id="floor"
                 value={floor}
-                onChange={(e) => setFloor(e.target.value)}
+                onChange={(e) => setFloor(e.target.value.replace(/\D/g, ""))}
                 placeholder="Поверх"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={3}
                 error={errors.floor}
               />
               <ErrorText message={errors.floor} />
@@ -266,8 +275,13 @@ export function ListingPropertyDetailsSection({
               <BaseInput
                 id="total-floors"
                 value={totalFloors}
-                onChange={(e) => setTotalFloors(e.target.value)}
+                onChange={(e) =>
+                  setTotalFloors(e.target.value.replace(/\D/g, ""))
+                }
                 placeholder="Всього"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={3}
                 error={errors.totalFloors}
               />
               <ErrorText message={errors.totalFloors} />
@@ -400,9 +414,12 @@ export function ListingPricingSection({
             <BaseInput
               id="price"
               value={price}
-              onChange={(e) => setPrice(e.target.value)}
+              onChange={(e) => setPrice(e.target.value.replace(/\D/g, ""))}
               placeholder="Введіть суму"
               dark
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={9}
               error={errors.price}
             />
             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[14px] text-white/45">

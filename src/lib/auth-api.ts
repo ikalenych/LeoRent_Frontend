@@ -1,7 +1,4 @@
-const API_URL = "https://leorent-backend.onrender.com";
-// TODO: Make a line above static and singleton variable to be accessed
-// In different files since there are mulptiple definitions of it
-
+const API_URL = import.meta.env.VITE_API_URL as string;
 
 type ApiErrorDetailItem = {
   msg?: string;
