@@ -147,7 +147,7 @@ export default function AiChatFab() {
   }
 
   return (
-    <div className="fixed bottom-24 right-6 z-50 w-[calc(100%-2rem)] sm:w-[400px] sm:max-w-[400px]">
+    <div className="fixed z-[2000] bottom-24 right-6 z-50 w-[calc(100%-2rem)] sm:w-[400px] sm:max-w-[400px]">
       <div
         className={`flex flex-col bg-white rounded-2xl shadow-2xl ${
           isMinimized ? "h-[70px]" : "h-[500px] sm:h-[600px]"
