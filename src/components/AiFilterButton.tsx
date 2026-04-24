@@ -11,14 +11,18 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useLiked } from "../context/LikedContext";
-import { aiSearchApartments } from "../api/apartments";
-import type { BackendApartmentPreview } from "../api/apartments";
+import {
+  aiSearchApartments,
+  type BackendApartmentPreview,
+} from "../api/apartments";
+
 import { useNavigate } from "react-router-dom";
 
 export default function AiChatFab() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { openAuthModal } = useLiked();
+
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<
@@ -30,6 +34,7 @@ export default function AiChatFab() {
   >([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -73,7 +78,7 @@ export default function AiChatFab() {
     const attemptSearch = async (): Promise<void> => {
       try {
         const data = await aiSearchApartments(userMessage, 1, 3);
-        const apartments = data.apartments as BackendApartmentPreview[];
+        const apartments = data.apartments;
 
         setMessages((prev) => [
           ...prev,
@@ -133,7 +138,7 @@ export default function AiChatFab() {
         onClick={() =>
           isAuthenticated ? setIsOpen(true) : handleAuthRequired()
         }
-        className="fixed bottom-22 z-[2000] right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-blue-600 text-white shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 group"
+        className="fixed bottom-22 z-[2000] right-6 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-blue-600 text-white shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 group"
         aria-label="AI чат"
       >
         <Sparkles className="h-6 w-6 group-hover:rotate-12 transition-transform duration-300" />
@@ -142,9 +147,11 @@ export default function AiChatFab() {
   }
 
   return (
-    <div className="fixed bottom-24 right-6 z-50 w-[calc(100%-2rem)] sm:w-[400px] sm:max-w-[400px] ">
+    <div className="fixed bottom-24 right-6 z-50 w-[calc(100%-2rem)] sm:w-[400px] sm:max-w-[400px]">
       <div
-        className={`flex flex-col bg-white rounded-2xl shadow-2xl ${isMinimized ? "h-[70px]" : "h-[500px] sm:h-[600px]"}`}
+        className={`flex flex-col bg-white rounded-2xl shadow-2xl ${
+          isMinimized ? "h-[70px]" : "h-[500px] sm:h-[600px]"
+        }`}
       >
         {/* Header */}
         <div className="flex items-center justify-between bg-gradient-to-r from-emerald-500 to-blue-600 px-4 py-3 rounded-t-2xl">
@@ -182,7 +189,7 @@ export default function AiChatFab() {
         {!isMinimized && (
           <>
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center">
                   <div className="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-100 to-blue-100 flex items-center justify-center mb-3">
@@ -194,7 +201,7 @@ export default function AiChatFab() {
                   <p className="text-sm text-gray-600 max-w-[250px]">
                     Запитай що завгодно про квартири
                   </p>
-                  <div className="mt-4 space-y-2 w-full">
+                  <div className="mt-6 space-y-2 w-full">
                     <button
                       onClick={() => {
                         setInput("2кім у Сихові до 15к");
@@ -223,54 +230,79 @@ export default function AiChatFab() {
                       className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                     >
                       <div
-                        className={`max-w-[85%] rounded-2xl px-3.5 py-2 ${message.role === "user"
+                        className={`max-w-[85%] rounded-2xl px-3.5 py-2 ${
+                          message.role === "user"
                             ? "bg-gradient-to-r from-emerald-500 to-blue-600 text-white"
                             : "bg-white border border-gray-200 text-gray-800 shadow-sm"
-                          }`}
+                        }`}
                       >
-                        {message.role === "ai" &&
-                          message.apartments &&
-                          message.apartments.length > 0 ? (
-                          <div>
-                            <p className="mb-2 text-sm">{message.content}</p>
-                            <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                              {message.apartments.map((apt) => (
-                                <button
-                                  key={apt.id_}
-                                  onClick={() => navigate(`/listings/${apt.id_}`)}
-                                  className="w-full rounded-xl p-2 text-left hover:bg-emerald-50 active:bg-emerald-100 transition border border-gray-100"
-                                >
-                                  <div className="flex gap-2">
-                                    <img
-                                      src={apt.picture || "/placeholder.jpg"}
-                                      alt={apt.title}
-                                      className="h-12 w-14 rounded-lg object-cover"
-                                      onError={(e) => {
-                                        (e.target as HTMLImageElement).src =
-                                          "/placeholder.jpg";
-                                      }}
-                                    />
-                                    <div className="flex-1 min-w-0">
-                                      <h4 className="font-semibold text-xs truncate">
-                                        {apt.title}
-                                      </h4>
-                                      <p className="text-xs text-emerald-600 font-medium mt-0.5">
-                                        {apt.cost.toLocaleString()}₴
-                                      </p>
-                                      <p className="text-xs text-gray-500">
-                                        {apt.rooms} кімн. • {apt.district}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        ) : (
-                          <p className="text-sm break-words">
-                            {message.content}
-                          </p>
-                        )}
+                        {/* AI повідомлення з квартирами - остаточна версія */}
+{message.role === "ai" &&
+  message.apartments &&
+  message.apartments.length > 0 ? (
+  <div>
+    <p className="mb-3 text-sm">{message.content}</p>
+    <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+      {message.apartments.map((apt) => {
+        // Спробуємо всі можливі поля з фото
+        let photoUrl: string | null | undefined = null;
+
+        if (apt.pictures && apt.pictures.length > 0) {
+          photoUrl = apt.pictures[0].url;
+        } else if (apt.picture) {
+          photoUrl = apt.picture;
+        }
+
+        // Якщо це дефолтне фото — вважаємо, що фото немає
+        if (photoUrl && photoUrl.includes("default.jpg")) {
+          photoUrl = null;
+        }
+
+        return (
+          <button
+            key={apt.id_}
+            onClick={() => navigate(`/listings/${apt.id_}`)}
+            className="w-full rounded-xl p-3 text-left hover:bg-emerald-50 active:bg-emerald-100 transition-all border border-gray-100 flex gap-3 group"
+          >
+            {/* Фото блок */}
+            <div className="h-14 w-20 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
+              {photoUrl ? (
+                <img
+                  src={photoUrl}
+                  alt={apt.title || "Квартира"}
+                  className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                  onError={(e) => {
+                    console.error("Фото не завантажилось:", photoUrl); // для дебагу
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400 text-2xl">
+                  📷
+                </div>
+              )}
+            </div>
+
+            {/* Інформація */}
+            <div className="flex-1 min-w-0 pt-0.5">
+              <h4 className="font-semibold text-sm leading-tight line-clamp-2">
+                {apt.title || "Без назви"}
+              </h4>
+              <p className="text-emerald-600 font-semibold mt-1 text-base">
+                {apt.cost.toLocaleString("uk-UA")} ₴
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {apt.rooms} кімн. • {apt.district || "—"}
+              </p>
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  </div>
+) : (
+  <p className="text-sm break-words">{message.content}</p>
+)}
                       </div>
                     </div>
                   ))}
