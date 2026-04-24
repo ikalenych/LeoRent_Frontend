@@ -194,20 +194,22 @@ export default function Profile() {
       const likedApartments = likedData.apartments ?? [];
       const myApartments = myData.apartments ?? myData.items ?? [];
 
-      const mappedSavedListings = likedApartments.map((apartment) => ({
-        id: apartment.id_ ?? apartment.id ?? "",
-        title: apartment.title,
-        location: apartment.location,
-        district: apartment.district,
-        cost: apartment.cost,
-        rooms: apartment.rooms,
-        square: apartment.square,
-        floor: apartment.floor,
-        floorInHouse: apartment.floor_in_house,
-        ownerType: mapApartmentOwnerType(apartment.owner_type),
-        rentType: mapApartmentRentType(apartment.rent_type),
-        photos: [{ url: getApartmentImage(apartment) }],
-      }));
+      const mappedSavedListings = likedApartments
+        .filter((apartment) => !apartment.is_deleted)
+        .map((apartment) => ({
+          id: apartment.id_ ?? apartment.id ?? "",
+          title: apartment.title,
+          location: apartment.location,
+          district: apartment.district,
+          cost: apartment.cost,
+          rooms: apartment.rooms,
+          square: apartment.square,
+          floor: apartment.floor,
+          floorInHouse: apartment.floor_in_house,
+          ownerType: mapApartmentOwnerType(apartment.owner_type),
+          rentType: mapApartmentRentType(apartment.rent_type),
+          photos: [{ url: getApartmentImage(apartment) }],
+        }));
 
       const mappedOwnerListings = myApartments
         .filter((apartment) => !apartment.is_deleted)
@@ -250,6 +252,7 @@ export default function Profile() {
       savedListings={savedListings}
       ownerListings={ownerListings}
       onOwnerListingDeleted={handleOwnerListingDeleted}
+      onSavedListingRemoved={loadProfileData}
       isLoading={isLoading}
       errorMessage={errorMessage}
       onRetry={loadProfileData}

@@ -44,6 +44,7 @@ type DocumentMeta = {
 type CreateListingStepTwoProps = {
   onBack?: () => void;
   onNext?: () => void;
+  nextLabel?: string;
   onVerify: (file: File) => void;
   onRemoveDocument: () => void;
   selectedFile: File | null;
@@ -54,6 +55,7 @@ type CreateListingStepTwoProps = {
 export function CreateListingStepTwo({
   onNext,
   onBack,
+  nextLabel,
   selectedFile,
   documentMeta,
   verification,
@@ -335,7 +337,7 @@ export function CreateListingStepTwo({
             className="w-full rounded-2xl font-semibold shadow-[0_10px_24px_rgba(16,185,129,0.22)] sm:min-w-31.5 sm:w-auto"
           >
             <span className="flex items-center justify-center gap-2">
-              Далі
+              {nextLabel ?? "Далі"}
               <ArrowRight size={18} strokeWidth={2} />
             </span>
           </Button>

@@ -44,7 +44,7 @@ export default function ProfileSavedListingCard({
   return (
     <div
       onClick={() => navigate(`/listings/${id}`)}
-      className="group mx-auto h-90 w-full max-w-75 shrink-0 overflow-hidden rounded-2xl bg-surface font-display shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg min-[480px]:h-105 min-[480px]:max-w-97.5"
+      className="group mx-auto h-90 w-full max-w-75 shrink-0 overflow-hidden rounded-2xl bg-surface font-display shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg cursor-pointer min-[480px]:h-105 min-[480px]:max-w-97.5"
     >
       <div className="relative h-47.5 w-full overflow-hidden min-[480px]:h-64">
         <img

@@ -47,7 +47,9 @@ export function Button({
         variantClasses[variant],
         sizeClasses[size],
         fullWidth ? "w-full" : "",
-        disabled || loading ? "cursor-not-allowed opacity-60" : "",
+        disabled || loading
+          ? "cursor-not-allowed opacity-60"
+          : "cursor-pointer",
         className,
       ].join(" ")}
       {...props}

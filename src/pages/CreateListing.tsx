@@ -131,13 +131,18 @@ function getUserDisplayName(user: StoredUser | null) {
 }
 
 export default function CreateListing() {
-  const { getFreshToken } = useAuth();
+  const { user, getFreshToken } = useAuth();
+  const isRealtor = user?.user_type === "AGENT";
   const navigate = useNavigate();
   const initialDraft = useMemo(() => getInitialDraft(), []);
 
-  const [currentStep, setCurrentStep] = useState<ListingStep>(
-    initialDraft?.currentStep ?? 1,
-  );
+  const [currentStep, setCurrentStep] = useState<ListingStep>(() => {
+    const draftStep = initialDraft?.currentStep ?? 1;
+    if (isRealtor && draftStep === 3) {
+      return 2;
+    }
+    return draftStep as ListingStep;
+  });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedDocumentMeta, setSelectedDocumentMeta] =
     useState<PersistedDocumentMeta | null>(
@@ -198,11 +203,18 @@ export default function CreateListing() {
   }
 
   function goToNextStep() {
-    setCurrentStep((prev) => (prev === 3 ? 3 : ((prev + 1) as ListingStep)));
+    setCurrentStep((prev) => {
+      if (prev === 1) return 2;
+      if (prev === 2) return isRealtor ? 2 : 3;
+      return 3;
+    });
   }
 
   function goToPreviousStep() {
-    setCurrentStep((prev) => (prev === 1 ? 1 : ((prev - 1) as ListingStep)));
+    setCurrentStep((prev) => {
+      if (prev === 1) return 1;
+      return prev === 2 ? 1 : 2;
+    });
   }
 
   function handleStepOneChange(data: Partial<ListingStepOneData>) {
@@ -289,6 +301,16 @@ export default function CreateListing() {
       alert("Вкажіть вартість.");
       return;
     }
+
+    const priceInteger = parseInt(stepOneData.price.trim(), 10);
+    if (
+      !/^[0-9]+$/.test(stepOneData.price.trim()) ||
+      !Number.isFinite(priceInteger)
+    ) {
+      alert("Вартість має бути цілим числом без копійок.");
+      return;
+    }
+
     if (photos.length === 0) {
       alert("Додайте хоча б одне фото.");
       return;
@@ -339,7 +361,7 @@ export default function CreateListing() {
       description: stepOneData.description.trim(),
       location: stepOneData.address.trim(),
       district: stepOneData.district,
-      cost: Number(stepOneData.price),
+      cost: priceInteger,
       rent_type: rentTypeMapped,
       rooms: stepOneData.rooms ? parseInt(stepOneData.rooms) : 0,
       square: stepOneData.area ? Number(stepOneData.area) : 0,
@@ -455,7 +477,10 @@ export default function CreateListing() {
   return (
     <section className="bg-page min-h-screen pb-10">
       <div className="mx-auto max-w-310 px-4 pt-8 sm:px-6 lg:px-8">
-        <CreateListingProgress currentStep={currentStep} />
+        <CreateListingProgress
+          currentStep={currentStep}
+          totalSteps={isRealtor ? 2 : 3}
+        />
 
         {currentStep === 1 ? (
           <CreateListingStepOne
@@ -466,26 +491,36 @@ export default function CreateListing() {
         ) : null}
 
         {currentStep === 2 ? (
-          <CreateListingStepTwo
-            onBack={goToPreviousStep}
-            onNext={goToNextStep}
-            onVerify={handleVerifyDocument}
-            onRemoveDocument={handleRemoveDocument}
-            selectedFile={selectedFile}
-            documentMeta={
-              selectedFile
-                ? {
-                    name: selectedFile.name,
-                    size: selectedFile.size,
-                    type: selectedFile.type,
-                  }
-                : selectedDocumentMeta
-            }
-            verification={verification}
-          />
+          isRealtor ? (
+            <CreateListingStepThree
+              onBack={goToPreviousStep}
+              onPublish={handlePublishListing}
+              isSubmitting={isSubmitting}
+              photos={photos}
+              onPhotosChange={setPhotos}
+            />
+          ) : (
+            <CreateListingStepTwo
+              onBack={goToPreviousStep}
+              onNext={goToNextStep}
+              onVerify={handleVerifyDocument}
+              onRemoveDocument={handleRemoveDocument}
+              selectedFile={selectedFile}
+              documentMeta={
+                selectedFile
+                  ? {
+                      name: selectedFile.name,
+                      size: selectedFile.size,
+                      type: selectedFile.type,
+                    }
+                  : selectedDocumentMeta
+              }
+              verification={verification}
+            />
+          )
         ) : null}
 
-        {currentStep === 3 ? (
+        {currentStep === 3 && !isRealtor ? (
           <CreateListingStepThree
             onBack={goToPreviousStep}
             onPublish={handlePublishListing}

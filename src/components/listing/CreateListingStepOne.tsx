@@ -20,6 +20,7 @@ import {
 } from "./ListingStepSections";
 import {
   validateListingStepOne,
+  validateLvivStreetAddress,
   type ListingStepOneErrors,
 } from "./listingStepOneValidation";
 
@@ -52,6 +53,7 @@ export function CreateListingStepOne({
   onChange,
 }: CreateListingStepOneProps) {
   const [errors, setErrors] = useState<ListingStepOneErrors>({});
+  const [isCheckingAddress, setIsCheckingAddress] = useState(false);
 
   const isDailyRent = formData.rentType === "Подобова оренда";
 
@@ -63,7 +65,7 @@ export function CreateListingStepOne({
     onChange({ amenities: nextAmenities });
   }
 
-  function handleNext() {
+  async function handleNext() {
     const validationErrors = validateListingStepOne({
       address: formData.address,
       district: formData.district,
@@ -83,6 +85,19 @@ export function CreateListingStepOne({
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+
+    setIsCheckingAddress(true);
+    const isValidAddress = await validateLvivStreetAddress(formData.address);
+    setIsCheckingAddress(false);
+
+    if (!isValidAddress) {
+      setErrors({
+        ...validationErrors,
+        address:
+          "Вулицю не знайдено у Львові. Введіть тільки вулицю та номер будинку.",
+      });
       return;
     }
 
@@ -169,9 +184,10 @@ export function CreateListingStepOne({
               size="lg"
               className="min-w-40 font-display"
               onClick={handleNext}
+              disabled={isCheckingAddress}
             >
               <span className="flex items-center gap-2">
-                Далі
+                {isCheckingAddress ? "Перевірка..." : "Далі"}
                 <ArrowRight size={18} strokeWidth={2} />
               </span>
             </Button>
