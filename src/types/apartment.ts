@@ -33,6 +33,8 @@ export interface ApartmentCardProps {
   ownerType: UserType;
   rentType: RentType;
   details?: ApartmentDetailsMap;
+  renovationType?: string;
+  buildingType?: string;
   isLiked?: boolean;
   onLike?: (id: string) => void;
 }

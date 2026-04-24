@@ -35,6 +35,8 @@ export function mapPreviewToCard(
     floorInHouse: apt.floor_in_house,
     rentType: mapRentType(apt.rent_type),
     ownerType: mapUserType(apt.owner_type),
+    renovationType: apt.renovation_type ?? undefined,
+    buildingType: apt.type_ ?? undefined,
     photos: apt.picture ? [{ url: apt.picture }] : [],
   };
 }
@@ -61,6 +63,8 @@ export function mapFullToCard(
     rentType: mapRentType(apt.rent_type),
     ownerType: mapUserType(apt.owner_type),
     details: (apt.details as ApartmentCardProps["details"]) ?? undefined,
+    renovationType: apt.renovation_type ?? undefined,
+    buildingType: apt.type_ ?? undefined,
     photos,
   };
 }

@@ -1,4 +1,12 @@
-import { MapPin } from "lucide-react";
+import {
+  MapPin,
+  BedDouble,
+  LayoutGrid,
+  Layers,
+  Wrench,
+  Building2,
+  Clock,
+} from "lucide-react";
 import {
   Wifi,
   Car,
@@ -24,7 +32,18 @@ const DETAILS_LABELS = [
 
 type Props = Pick<
   ApartmentCardProps,
-  "title" | "description" | "location" | "district" | "details"
+  | "title"
+  | "description"
+  | "location"
+  | "district"
+  | "details"
+  | "rooms"
+  | "square"
+  | "floor"
+  | "floorInHouse"
+  | "rentType"
+  | "renovationType"
+  | "buildingType"
 >;
 
 export function ApartmentInfo({
@@ -33,6 +52,13 @@ export function ApartmentInfo({
   location,
   district,
   details,
+  rooms,
+  square,
+  floor,
+  floorInHouse,
+  rentType,
+  renovationType,
+  buildingType,
 }: Props) {
   return (
     <div className="flex flex-col gap-4 font-display">
@@ -53,6 +79,94 @@ export function ApartmentInfo({
       <h1 className="text-text-title font-bold text-[1.65rem] leading-tight">
         {title}
       </h1>
+
+      {/* Характеристики */}
+      {(rooms != null ||
+        square != null ||
+        floor != null ||
+        floorInHouse != null ||
+        rentType ||
+        renovationType ||
+        buildingType) && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {rooms != null && (
+            <div className="flex items-center gap-2 bg-surface rounded-xl px-3 py-2.5">
+              <BedDouble className="w-4 h-4 text-primary shrink-0" />
+              <div>
+                <p className="text-[11px] text-text-description">Кімнати</p>
+                <p className="text-sm font-semibold text-text-title">
+                  {rooms} к.
+                </p>
+              </div>
+            </div>
+          )}
+          {square != null && (
+            <div className="flex items-center gap-2 bg-surface rounded-xl px-3 py-2.5">
+              <LayoutGrid className="w-4 h-4 text-primary shrink-0" />
+              <div>
+                <p className="text-[11px] text-text-description">Площа</p>
+                <p className="text-sm font-semibold text-text-title">
+                  {square} м²
+                </p>
+              </div>
+            </div>
+          )}
+          {floor != null && floorInHouse != null && (
+            <div className="flex items-center gap-2 bg-surface rounded-xl px-3 py-2.5">
+              <Layers className="w-4 h-4 text-primary shrink-0" />
+              <div>
+                <p className="text-[11px] text-text-description">Поверх</p>
+                <p className="text-sm font-semibold text-text-title">
+                  {floor}/{floorInHouse}
+                </p>
+              </div>
+            </div>
+          )}
+          {renovationType && (
+            <div className="flex items-center gap-2 bg-surface rounded-xl px-3 py-2.5">
+              <Wrench className="w-4 h-4 text-primary shrink-0" />
+              <div>
+                <p className="text-[11px] text-text-description">Ремонт</p>
+                <p className="text-sm font-semibold text-text-title">
+                  {{
+                    euro: "Євроремонт",
+                    cosmetic: "Косметичний",
+                    design: "Дизайнерський",
+                    none: "Без ремонту",
+                  }[renovationType] || renovationType}
+                </p>
+              </div>
+            </div>
+          )}
+          {buildingType && (
+            <div className="flex items-center gap-2 bg-surface rounded-xl px-3 py-2.5">
+              <Building2 className="w-4 h-4 text-primary shrink-0" />
+              <div>
+                <p className="text-[11px] text-text-description">Тип будинку</p>
+                <p className="text-sm font-semibold text-text-title">
+                  {{
+                    panel: "Панельний",
+                    monolith: "Монолітний",
+                    brick: "Цегляний",
+                    wood: "Дерев'яний",
+                  }[buildingType] || buildingType}
+                </p>
+              </div>
+            </div>
+          )}
+          {rentType && (
+            <div className="flex items-center gap-2 bg-surface rounded-xl px-3 py-2.5">
+              <Clock className="w-4 h-4 text-primary shrink-0" />
+              <div>
+                <p className="text-[11px] text-text-description">Оренда</p>
+                <p className="text-sm font-semibold text-text-title">
+                  {rentType === "Daily" ? "Подобова" : "Тривала"}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Опис */}
       {description && (
