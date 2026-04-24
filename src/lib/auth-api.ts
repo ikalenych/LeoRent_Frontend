@@ -1,4 +1,4 @@
-const API_URL = "https://leorent-backend.onrender.com";
+const API_URL = import.meta.env.VITE_API_URL as string;
 
 type ApiErrorDetailItem = {
   msg?: string;

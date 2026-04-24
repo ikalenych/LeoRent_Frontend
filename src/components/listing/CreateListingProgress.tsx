@@ -2,27 +2,30 @@ type ListingStep = 1 | 2 | 3;
 
 interface CreateListingProgressProps {
   currentStep: ListingStep;
+  totalSteps?: 2 | 3;
 }
 
 const stepConfig = {
   1: {
     label: "1. Інформація",
-    description: "Крок 1 із 3 — основні дані",
+    shortDescription: "основні дані",
   },
   2: {
     label: "2. Верифікація",
-    description: "Крок 2 із 3 — підтвердження",
+    shortDescription: "підтвердження",
   },
   3: {
     label: "3. Публікація",
-    description: "Крок 3 із 3 — перевірка і публікація",
+    shortDescription: "перевірка і публікація",
   },
 } as const;
 
 export function CreateListingProgress({
   currentStep,
+  totalSteps = 3,
 }: CreateListingProgressProps) {
-  const progressWidth = `${(currentStep / 3) * 100}%`;
+  const clampedTotalSteps = Math.max(totalSteps, currentStep) as 2 | 3;
+  const progressWidth = `${(currentStep / clampedTotalSteps) * 100}%`;
 
   return (
     <section className=" font-display">
@@ -34,7 +37,7 @@ export function CreateListingProgress({
             </span>
 
             <span className="ml-auto max-w-55 text-right text-text-description sm:max-w-none">
-              {stepConfig[currentStep].description}
+              {`Крок ${currentStep} із ${clampedTotalSteps} — ${stepConfig[currentStep].shortDescription}`}
             </span>
           </div>
 

@@ -17,6 +17,7 @@ interface UserProfileLayoutProps {
   savedListings: ProfileListingCardData[];
   ownerListings?: OwnerListingRow[];
   onOwnerListingDeleted?: (id: string) => void;
+  onSavedListingRemoved?: () => void;
   isLoading?: boolean;
   errorMessage?: string | null;
   onRetry?: () => void;
@@ -27,6 +28,7 @@ export default function UserProfileLayout({
   savedListings,
   ownerListings = [],
   onOwnerListingDeleted,
+  onSavedListingRemoved,
   isLoading = false,
   errorMessage,
   onRetry,
@@ -100,7 +102,10 @@ export default function UserProfileLayout({
           </>
         ) : (
           <>
-            <SavedListingsSection listings={savedListings} />
+            <SavedListingsSection
+              listings={savedListings}
+              onRemoveSuccess={onSavedListingRemoved}
+            />
 
             {isOwnerView ? (
               <OwnerListingsSection

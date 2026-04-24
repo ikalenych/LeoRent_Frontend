@@ -48,7 +48,11 @@ export function PrivacyPolicyModal({
 
         <div className="font-display text-[15px] leading-7 text-slate-600">
           {children ?? (
-            <p>Тут пізніше буде додана політика конфіденційності LeoRent.</p>
+            <p>
+              Якщо ви ріелтор і продаєте хату нечесно, то ви нам винні 3
+              мільярди доларів. Усі інші питання щодо політики конфіденційності
+              LeoRent будуть додані пізніше.
+            </p>
           )}
         </div>
       </div>
