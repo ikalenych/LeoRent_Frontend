@@ -13,8 +13,10 @@ import { useAuth } from "../context/AuthContext";
 import { useLiked } from "../context/LikedContext";
 import { aiSearchApartments } from "../api/apartments";
 import type { BackendApartmentPreview } from "../api/apartments";
+import { useNavigate } from "react-router-dom";
 
 export default function AiChatFab() {
+  const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { openAuthModal } = useLiked();
   const [isOpen, setIsOpen] = useState(false);
@@ -221,24 +223,21 @@ export default function AiChatFab() {
                       className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                     >
                       <div
-                        className={`max-w-[85%] rounded-2xl px-3.5 py-2 ${
-                          message.role === "user"
+                        className={`max-w-[85%] rounded-2xl px-3.5 py-2 ${message.role === "user"
                             ? "bg-gradient-to-r from-emerald-500 to-blue-600 text-white"
                             : "bg-white border border-gray-200 text-gray-800 shadow-sm"
-                        }`}
+                          }`}
                       >
                         {message.role === "ai" &&
-                        message.apartments &&
-                        message.apartments.length > 0 ? (
+                          message.apartments &&
+                          message.apartments.length > 0 ? (
                           <div>
                             <p className="mb-2 text-sm">{message.content}</p>
                             <div className="space-y-2 max-h-[300px] overflow-y-auto">
                               {message.apartments.map((apt) => (
                                 <button
                                   key={apt.id_}
-                                  onClick={() =>
-                                    (window.location.href = `/apartment/${apt.id_}`)
-                                  }
+                                  onClick={() => navigate(`/listings/${apt.id_}`)}
                                   className="w-full rounded-xl p-2 text-left hover:bg-emerald-50 active:bg-emerald-100 transition border border-gray-100"
                                 >
                                   <div className="flex gap-2">
