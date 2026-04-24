@@ -94,3 +94,39 @@ export async function toggleApartmentLike(id: string): Promise<void> {
     headers: { ...authHeaders() },
   });
 }
+
+export async function aiSearchApartments(
+  prompt: string,
+  page = 1,
+  size = 6,
+  token?: string,
+): Promise<BackendApartmentListResponse> {
+  const params = new URLSearchParams({
+    prompt,
+    page: String(page),
+    size: String(size),
+  });
+
+  const headers: Record<string, string> = {};
+  const authToken = token ?? getToken();
+  if (authToken) {
+    headers.Authorization = `Bearer ${authToken}`;
+  }
+
+  const res = await fetch(`${API_URL}/filter/ai-search?${params.toString()}`, {
+    method: "GET",
+    headers,
+  });
+
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("retry-after") || 120;
+    throw new Error(`AI недоступний (ліміт). Спробуй через ${retryAfter}с`);
+  }
+
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.detail || "AI пошук не спрацював");
+  }
+
+  return res.json();
+}
