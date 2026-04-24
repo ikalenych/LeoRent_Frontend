@@ -6,6 +6,7 @@ import type { ApartmentCardProps } from "../types/apartment";
 type ApartmentCardViewProps = ApartmentCardProps & {
   isLiked?: boolean;
   onLike?: (id: string) => void;
+  renovationType?: string;
 };
 
 export default function ApartmentCard({
@@ -23,6 +24,7 @@ export default function ApartmentCard({
   rentType,
   isLiked,
   onLike,
+  renovationType,
 }: ApartmentCardViewProps) {
   const navigate = useNavigate();
   const { liked, toggleLike } = useLiked();
@@ -30,6 +32,20 @@ export default function ApartmentCard({
   const isRealtor = ownerType === "Rieltor";
   const isDaily = rentType === "Daily";
   const formattedCost = cost.toLocaleString("uk-UA");
+
+  const renovationLabel: Record<string, string> = {
+    euro: "Євроремонт",
+    cosmetic: "Косметичний",
+    design: "Дизайнерський",
+    none: "Без ремонту",
+  };
+
+  const renovationColors: Record<string, string> = {
+    euro: "bg-yellow-50 text-yellow-700",
+    cosmetic: "bg-cyan-50 text-cyan-700",
+    design: "bg-purple-50 text-purple-700",
+    none: "bg-gray-100 text-gray-600",
+  };
 
   const likedState = typeof isLiked === "boolean" ? isLiked : liked.has(id);
 
@@ -86,15 +102,24 @@ export default function ApartmentCard({
 
       <div className="px-4 py-3 flex flex-col justify-between h-[170px] min-[480px]:h-[164px]">
         <div className="flex flex-col gap-1">
-          <span
-            className={`self-start text-xs font-medium px-2.5 py-0.5 rounded-full leading-5 ${
-              isDaily
-                ? "bg-emerald-100 text-emerald-700"
-                : "bg-gray-100 text-gray-500"
-            }`}
-          >
-            {isDaily ? "Подобово" : "Тривала оренда"}
-          </span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span
+              className={`text-xs font-semibold px-2.5 py-0.5 rounded-full leading-5 ${
+                isDaily
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "bg-gray-100 text-gray-500"
+              }`}
+            >
+              {isDaily ? "Подобово" : "Тривала оренда"}
+            </span>
+            {renovationType && renovationLabel[renovationType] && (
+              <span
+                className={`text-xs font-semibold px-2.5 py-0.5 rounded-full leading-5 ${renovationColors[renovationType] || "bg-amber-50 text-amber-700"}`}
+              >
+                {renovationLabel[renovationType]}
+              </span>
+            )}
+          </div>
 
           <h3 className="text-text-title group-hover:text-primary font-semibold text-base leading-snug line-clamp-1 transition-colors duration-200">
             {title}
