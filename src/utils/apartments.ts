@@ -31,12 +31,14 @@ export function filterApartments(
     if (filters.squareMax && a.square > filters.squareMax) return false;
     if (filters.floorMin && a.floor < filters.floorMin) return false;
     if (filters.floorMax && a.floor > filters.floorMax) return false;
+    if (filters.renovationType && a.renovationType !== filters.renovationType)
+      return false;
+    if (filters.buildingType && a.buildingType !== filters.buildingType)
+      return false;
     if (filters.ownerType !== "all" && a.ownerType !== filters.ownerType)
       return false;
     if (filters.rentType !== "all" && a.rentType !== filters.rentType)
       return false;
-    if (filters.withFurniture && !a.details?.furniture) return false;
-    if (filters.petsAllowed && !a.details?.pets) return false;
     return true;
   });
 }

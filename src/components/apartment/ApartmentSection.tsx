@@ -63,6 +63,13 @@ export function ApartmentSection({ id }: Props) {
               location={apartment.location}
               district={apartment.district}
               details={apartment.details}
+              rooms={apartment.rooms}
+              square={apartment.square}
+              floor={apartment.floor}
+              floorInHouse={apartment.floorInHouse}
+              rentType={apartment.rentType}
+              renovationType={apartment.renovationType}
+              buildingType={apartment.buildingType}
             />
             <ApartmentMap location={apartment.location} />
           </div>
