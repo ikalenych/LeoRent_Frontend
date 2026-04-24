@@ -11,8 +11,8 @@ export interface FilterState {
   squareMax: number;
   floorMin: number;
   floorMax: number;
-  withFurniture: boolean;
-  petsAllowed: boolean;
+  renovationType: string;
+  buildingType: string;
   ownerType: "all" | "Owner" | "Rieltor";
   rentType: "all" | RentType;
 }
@@ -26,8 +26,8 @@ export const DEFAULT_FILTERS: FilterState = {
   squareMax: 0,
   floorMin: 0,
   floorMax: 0,
-  withFurniture: false,
-  petsAllowed: false,
+  renovationType: "",
+  buildingType: "",
   ownerType: "all",
   rentType: "all",
 };
@@ -61,8 +61,8 @@ function hasAnyFilter(f: FilterState) {
     f.squareMax > 0 ||
     f.floorMin > 0 ||
     f.floorMax > 0 ||
-    f.withFurniture ||
-    f.petsAllowed ||
+    !!f.renovationType ||
+    !!f.buildingType ||
     f.ownerType !== "all" ||
     f.rentType !== "all"
   );
@@ -228,25 +228,46 @@ export function DesktopFilters({
         </div>
       </div>
 
-      {/* Чекбокси */}
-      <div className="flex flex-col gap-2.5">
-        {[
-          { key: "withFurniture" as const, label: "З меблями" },
-          { key: "petsAllowed" as const, label: "Можна з тваринами" },
-        ].map(({ key, label }) => (
-          <label
-            key={key}
-            className="flex items-center gap-2 text-sm text-text-title cursor-pointer"
+      {/* Тип ремонту */}
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-medium text-text-description uppercase tracking-wide">
+          Тип ремонту
+        </label>
+        <div className="relative">
+          <select
+            value={filters.renovationType}
+            onChange={(e) => set("renovationType", e.target.value)}
+            className="w-full appearance-none text-sm text-text-title bg-page border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary pr-8"
           >
-            <input
-              type="checkbox"
-              checked={filters[key]}
-              onChange={(e) => set(key, e.target.checked)}
-              className="accent-primary w-4 h-4"
-            />
-            {label}
-          </label>
-        ))}
+            <option value="">Всі типи</option>
+            <option value="euro">Євроремонт</option>
+            <option value="cosmetic">Косметичний</option>
+            <option value="design">Дизайнерський</option>
+            <option value="none">Без ремонту</option>
+          </select>
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-description pointer-events-none" />
+        </div>
+      </div>
+
+      {/* Тип будинку */}
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-medium text-text-description uppercase tracking-wide">
+          Тип будинку
+        </label>
+        <div className="relative">
+          <select
+            value={filters.buildingType}
+            onChange={(e) => set("buildingType", e.target.value)}
+            className="w-full appearance-none text-sm text-text-title bg-page border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary pr-8"
+          >
+            <option value="">Всі типи</option>
+            <option value="panel">Панельний</option>
+            <option value="monolith">Монолітний</option>
+            <option value="brick">Цегляний</option>
+            <option value="wood">Дерев'яний</option>
+          </select>
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-description pointer-events-none" />
+        </div>
       </div>
 
       {/* Тип оголошення */}
@@ -309,14 +330,14 @@ export function DesktopFilters({
   );
 }
 
-// ─── Мобілка ───────────────────────────────────────────────────
 type ChipKey =
   | "district"
   | "rooms"
   | "ownerType"
   | "price"
   | "square"
-  | "extra"
+  | "renovationType"
+  | "buildingType"
   | "rentType";
 
 export function MobileFilters({
@@ -364,7 +385,8 @@ export function MobileFilters({
   const hasOwner = filters.ownerType !== "all";
   const hasPrice = filters.priceMin > 0 || filters.priceMax > 0;
   const hasSquare = filters.squareMin > 0 || filters.squareMax > 0;
-  const hasExtra = filters.withFurniture || filters.petsAllowed;
+  const hasRenovationType = !!filters.renovationType;
+  const hasBuildingType = !!filters.buildingType;
   const hasRentType = filters.rentType !== "all";
   const hasAny = hasAnyFilter(filters);
 
@@ -391,14 +413,26 @@ export function MobileFilters({
   const squareLabel = !hasSquare
     ? "Площа м²"
     : `${filters.squareMin || ""}–${filters.squareMax || ""} м²`;
-  const extraLabel =
-    filters.withFurniture && filters.petsAllowed
-      ? "З меблями, з тваринами"
-      : filters.withFurniture
-        ? "З меблями"
-        : filters.petsAllowed
-          ? "З тваринами"
-          : "Додатково";
+  const renovationTypeLabel =
+    filters.renovationType === "euro"
+      ? "Євроремонт"
+      : filters.renovationType === "cosmetic"
+        ? "Косметичний"
+        : filters.renovationType === "design"
+          ? "Дизайнерський"
+          : filters.renovationType === "none"
+            ? "Без ремонту"
+            : "Тип ремонту";
+  const buildingTypeLabel =
+    filters.buildingType === "panel"
+      ? "Панельний"
+      : filters.buildingType === "monolith"
+        ? "Монолітний"
+        : filters.buildingType === "brick"
+          ? "Цегляний"
+          : filters.buildingType === "wood"
+            ? "Дерев'яний"
+            : "Тип будинку";
   const rentTypeLabel =
     filters.rentType === "Daily"
       ? "Подобово"
@@ -535,17 +569,34 @@ export function MobileFilters({
           )}
         </button>
 
-        {/* Додатково */}
+        {/* Тип ремонту */}
         <button
-          onClick={() => toggle("extra")}
-          className={`${chipBase} ${hasExtra ? chipOn : chipOff}`}
+          onClick={() => toggle("renovationType")}
+          className={`${chipBase} ${hasRenovationType ? chipOn : chipOff}`}
         >
-          {extraLabel}
-          {hasExtra ? (
+          {renovationTypeLabel}
+          {hasRenovationType ? (
             <ClearIcon
               onClear={() => {
-                set("withFurniture", false);
-                set("petsAllowed", false);
+                set("renovationType", "");
+                setOpenChip(null);
+              }}
+            />
+          ) : (
+            <ChevronDown className="w-3.5 h-3.5" />
+          )}
+        </button>
+
+        {/* Тип будинку */}
+        <button
+          onClick={() => toggle("buildingType")}
+          className={`${chipBase} ${hasBuildingType ? chipOn : chipOff}`}
+        >
+          {buildingTypeLabel}
+          {hasBuildingType ? (
+            <ClearIcon
+              onClear={() => {
+                set("buildingType", "");
                 setOpenChip(null);
               }}
             />
@@ -727,24 +778,48 @@ export function MobileFilters({
         </div>
       )}
 
-      {openChip === "extra" && (
-        <div className="relative z-50 bg-surface rounded-2xl shadow-lg p-4 border border-gray-100 flex flex-col gap-2">
+      {openChip === "renovationType" && (
+        <div className="relative z-50 bg-surface rounded-2xl shadow-lg p-4 flex flex-col gap-1 border border-gray-100">
           {[
-            { key: "withFurniture" as const, label: "З меблями" },
-            { key: "petsAllowed" as const, label: "Можна з тваринами" },
-          ].map(({ key, label }) => (
-            <label
-              key={key}
-              className="flex items-center gap-2 text-sm text-text-title cursor-pointer px-1 py-1"
+            { value: "", label: "Всі типи" },
+            { value: "euro", label: "Євроремонт" },
+            { value: "cosmetic", label: "Косметичний" },
+            { value: "design", label: "Дизайнерський" },
+            { value: "none", label: "Без ремонту" },
+          ].map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => {
+                set("renovationType", value);
+                setOpenChip(null);
+              }}
+              className={`text-left text-sm px-3 py-2 rounded-xl transition-colors ${filters.renovationType === value ? "bg-primary text-white" : "hover:bg-page text-text-title"}`}
             >
-              <input
-                type="checkbox"
-                checked={filters[key]}
-                onChange={(e) => set(key, e.target.checked)}
-                className="accent-primary w-4 h-4"
-              />
               {label}
-            </label>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {openChip === "buildingType" && (
+        <div className="relative z-50 bg-surface rounded-2xl shadow-lg p-4 flex flex-col gap-1 border border-gray-100">
+          {[
+            { value: "", label: "Всі типи" },
+            { value: "panel", label: "Панельний" },
+            { value: "monolith", label: "Монолітний" },
+            { value: "brick", label: "Цегляний" },
+            { value: "wood", label: "Дерев'яний" },
+          ].map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => {
+                set("buildingType", value);
+                setOpenChip(null);
+              }}
+              className={`text-left text-sm px-3 py-2 rounded-xl transition-colors ${filters.buildingType === value ? "bg-primary text-white" : "hover:bg-page text-text-title"}`}
+            >
+              {label}
+            </button>
           ))}
         </div>
       )}

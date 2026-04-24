@@ -56,8 +56,8 @@ function filtersFromParams(params: URLSearchParams): FilterState {
     squareMax: Number(params.get("square_max")) || 0,
     floorMin: Number(params.get("floor_min")) || 0,
     floorMax: Number(params.get("floor_max")) || 0,
-    withFurniture: params.get("with_furniture") === "true",
-    petsAllowed: params.get("pets_allowed") === "true",
+    renovationType: params.get("renovation_type") ?? "",
+    buildingType: params.get("building_type") ?? "",
     rentType,
     ownerType,
   };
@@ -74,8 +74,9 @@ function buildUrlParams(filters: FilterState, sort: SortOption, page: number) {
   if (filters.squareMax) params.set("square_max", String(filters.squareMax));
   if (filters.floorMin) params.set("floor_min", String(filters.floorMin));
   if (filters.floorMax) params.set("floor_max", String(filters.floorMax));
-  if (filters.withFurniture) params.set("with_furniture", "true");
-  if (filters.petsAllowed) params.set("pets_allowed", "true");
+  if (filters.renovationType)
+    params.set("renovation_type", filters.renovationType);
+  if (filters.buildingType) params.set("building_type", filters.buildingType);
 
   if (filters.rentType !== "all") {
     const map = { Default: "Default", Daily: "Daily" };
@@ -101,6 +102,10 @@ function buildApiParams(
 ) {
   const params = buildUrlParams(filters, sort, page);
   params.delete("page");
+
+  if (filters.renovationType)
+    params.set("renovation_type", filters.renovationType);
+  if (filters.buildingType) params.set("building_type", filters.buildingType);
 
   if (filters.rentType !== "all") {
     const map = { Default: "DEFAULT", Daily: "DAILY" };
