@@ -28,13 +28,13 @@ export function ApartmentsSection() {
             <h2 className="text-text-title font-display font-semibold text-2xl">
               Нові пропозиції
             </h2>
-            <p className="text-text-description text-sm mt-1">
+            <p className="text-text-description text-sm mt-1 font-medium">
               Найкращі квартири, що з'явилися сьогодні
             </p>
           </div>
           <Link
             to="/listings"
-            className="text-primary hover:text-primary-hover text-sm font-medium transition-colors sm:self-start"
+            className="text-primary hover:text-primary-hover text-sm font-semibold transition-colors sm:self-start"
           >
             Всі оголошення →
           </Link>

@@ -264,7 +264,6 @@ export function DesktopFilters({
             <option value="panel">Панельний</option>
             <option value="monolith">Монолітний</option>
             <option value="brick">Цегляний</option>
-            <option value="wood">Дерев'яний</option>
           </select>
           <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-description pointer-events-none" />
         </div>
@@ -430,9 +429,7 @@ export function MobileFilters({
         ? "Монолітний"
         : filters.buildingType === "brick"
           ? "Цегляний"
-          : filters.buildingType === "wood"
-            ? "Дерев'яний"
-            : "Тип будинку";
+          : "Тип будинку";
   const rentTypeLabel =
     filters.rentType === "Daily"
       ? "Подобово"
@@ -808,7 +805,6 @@ export function MobileFilters({
             { value: "panel", label: "Панельний" },
             { value: "monolith", label: "Монолітний" },
             { value: "brick", label: "Цегляний" },
-            { value: "wood", label: "Дерев'яний" },
           ].map(({ value, label }) => (
             <button
               key={value}

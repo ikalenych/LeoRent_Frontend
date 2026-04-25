@@ -10,7 +10,7 @@ export default function Footer() {
             </span>
           </div>
           <p className="text-text-description text-xs">
-            © 2026 LeoRent. Всі права захищені.
+            © {new Date().getFullYear()} LeoRent. Всі права захищені.
           </p>
         </div>
 
