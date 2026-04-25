@@ -1,18 +1,18 @@
 import { HeroSearchBar } from "./HeroSearchBar";
-import heroBg from "../../../assets/hero.jpg";
+import heroBg from "../../../assets/hero.webp";
 
 export function Hero() {
   return (
-    <section className="relative w-full h-screen max-h-320 min-h-150 flex items-center justify-center">
+    <section className="relative w-full h-screen max-h-320 min-h-150 flex items-center justify-center overflow-hidden">
       <img
         src={heroBg}
-        alt="Lviv"
+        alt=""
         loading="eager"
         decoding="async"
+        fetchPriority="high"
         className="absolute inset-0 w-full h-full object-cover object-center"
-        style={{ clipPath: "inset(0)" }}
       />
-      <div className="absolute inset-0 bg-linear-to-t from-slate-900/80 via-slate-900/50 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/50 to-transparent" />
 
       <div className="relative z-10 w-full max-w-4xl mx-auto px-6 flex flex-col items-center gap-8">
         <h1 className="font-serif text-5xl md:text-6xl font-bold text-white text-center leading-tight drop-shadow-md">

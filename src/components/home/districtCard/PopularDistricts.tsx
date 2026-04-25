@@ -9,7 +9,15 @@ type DistrictItem = {
   name: string;
   count: number;
   imageUrl: string;
+  srcSet: string;
 };
+
+const buildSrcSet = (photoId: string) =>
+  [
+    `https://images.unsplash.com/${photoId}?auto=format&fit=crop&w=400&q=75 400w`,
+    `https://images.unsplash.com/${photoId}?auto=format&fit=crop&w=600&q=75 600w`,
+    `https://images.unsplash.com/${photoId}?auto=format&fit=crop&w=900&q=75 900w`,
+  ].join(", ");
 
 const initialDistricts: DistrictItem[] = [
   {
@@ -17,42 +25,48 @@ const initialDistricts: DistrictItem[] = [
     name: "Галицький",
     count: 0,
     imageUrl:
-      "https://images.unsplash.com/photo-1520697830682-1f8f0f3c2a8a?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1555993539-1732b0258235?auto=format&fit=crop&w=600&q=75",
+    srcSet: buildSrcSet("photo-1555993539-1732b0258235"),
   },
   {
     id: 2,
     name: "Франківський",
     count: 0,
     imageUrl:
-      "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=75",
+    srcSet: buildSrcSet("photo-1502602898657-3e91760cbb34"),
   },
   {
     id: 3,
     name: "Сихівський",
     count: 0,
     imageUrl:
-      "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=600&q=75",
+    srcSet: buildSrcSet("photo-1449824913935-59a10b8d2000"),
   },
   {
     id: 4,
     name: "Личаківський",
     count: 0,
     imageUrl:
-      "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=600&q=75",
+    srcSet: buildSrcSet("photo-1505761671935-60b3a7427bad"),
   },
   {
     id: 5,
     name: "Шевченківський",
     count: 0,
     imageUrl:
-      "https://images.unsplash.com/photo-1494522358652-f30e61a60313?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1494522358652-f30e61a60313?auto=format&fit=crop&w=600&q=75",
+    srcSet: buildSrcSet("photo-1494522358652-f30e61a60313"),
   },
   {
     id: 6,
     name: "Залізничний",
     count: 0,
     imageUrl:
-      "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?auto=format&fit=crop&w=600&q=75",
+    srcSet: buildSrcSet("photo-1480714378408-67cf0d13bc1b"),
   },
 ];
 
@@ -83,10 +97,8 @@ export const PopularDistricts: React.FC = () => {
   useEffect(() => {
     checkScroll();
     const el = scrollRef.current;
-
     el?.addEventListener("scroll", checkScroll);
     window.addEventListener("resize", checkScroll);
-
     return () => {
       el?.removeEventListener("scroll", checkScroll);
       window.removeEventListener("resize", checkScroll);
@@ -106,20 +118,13 @@ export const PopularDistricts: React.FC = () => {
 
             const res = await fetch(
               `${API_URL}/apartment/?${params.toString()}`,
-              {
-                headers: authHeaders(),
-              },
+              { headers: authHeaders() },
             );
 
             const data = await res.json();
-
-            return {
-              ...district,
-              count: data.total ?? 0,
-            };
+            return { ...district, count: data.total ?? 0 };
           }),
         );
-
         setDistricts(results);
       } catch (error) {
         console.error("Failed to load district counts:", error);
@@ -132,7 +137,6 @@ export const PopularDistricts: React.FC = () => {
   const scroll = (direction: "left" | "right") => {
     const el = scrollRef.current;
     if (!el) return;
-
     el.scrollBy({
       left: direction === "right" ? 300 : -300,
       behavior: "smooth",
@@ -144,7 +148,6 @@ export const PopularDistricts: React.FC = () => {
     params.set("district", name);
     params.set("sort", "newest");
     params.set("page", "1");
-
     navigate(`/listings?${params.toString()}`);
   };
 
@@ -157,6 +160,7 @@ export const PopularDistricts: React.FC = () => {
           <button
             onClick={() => scroll("left")}
             disabled={!canScrollLeft}
+            aria-label="Прокрутити вліво"
             className={`w-9 h-9 rounded-full border flex items-center justify-center transition ${
               canScrollLeft
                 ? "border-gray-300 text-gray-700 hover:bg-gray-100"
@@ -169,6 +173,7 @@ export const PopularDistricts: React.FC = () => {
           <button
             onClick={() => scroll("right")}
             disabled={!canScrollRight}
+            aria-label="Прокрутити вправо"
             className={`w-9 h-9 rounded-full border flex items-center justify-center transition ${
               canScrollRight
                 ? "border-gray-300 text-gray-700 hover:bg-gray-100"
@@ -182,12 +187,7 @@ export const PopularDistricts: React.FC = () => {
 
       <div
         ref={scrollRef}
-        className="
-          flex gap-4 overflow-x-auto px-4 sm:px-6 lg:px-10 pb-2
-          [scrollbar-width:none]
-          [-ms-overflow-style:none]
-          [&::-webkit-scrollbar]:hidden
-        "
+        className="flex gap-4 overflow-x-auto px-4 sm:px-6 lg:px-10 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
       >
         {districts.map((district) => (
           <div
@@ -199,10 +199,11 @@ export const PopularDistricts: React.FC = () => {
               name={district.name}
               count={district.count}
               imageUrl={district.imageUrl}
+              srcSet={district.srcSet}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 504px"
             />
           </div>
         ))}
-
         <div className="shrink-0 w-1" />
       </div>
     </section>
