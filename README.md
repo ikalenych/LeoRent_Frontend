@@ -27,3 +27,5 @@ npm run dev
 ```
 
 Frontend: `http://localhost:5173`
+або
+Frontend: `leorent.netlify.app/`
