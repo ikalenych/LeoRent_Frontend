@@ -2,7 +2,7 @@ import { Heart, MapPin, BedDouble, LayoutGrid, Layers } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLiked } from "../context/LikedContext";
 import type { ApartmentCardProps } from "../types/apartment";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useState } from "react";
 
 type ApartmentCardViewProps = ApartmentCardProps & {
@@ -114,7 +114,7 @@ export default function ApartmentCard({
           className="absolute bottom-3 right-3 bg-white/80 backdrop-blur-sm hover:bg-white p-2 rounded-full shadow-sm cursor-pointer"
           aria-label="Додати до обраного"
         >
-          <motion.div
+          <m.div
             animate={
               animateLike
                 ? { scale: 1.4, rotate: -10 }
@@ -133,7 +133,7 @@ export default function ApartmentCard({
                   : "text-text-description"
               }`}
             />
-          </motion.div>
+          </m.div>
         </button>
       </div>
 
