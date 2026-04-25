@@ -1,5 +1,5 @@
 import { HeroSearchBar } from "./HeroSearchBar";
-import heroBg from "../../../assets/hero.webp";
+import heroBg from "/hero.webp";
 
 export function Hero() {
   return (
