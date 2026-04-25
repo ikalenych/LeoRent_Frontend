@@ -63,7 +63,7 @@ export default function Header() {
 
   return (
     <>
-      <div className="fixed top-3 left-0 right-0 z-50 flex justify-center px-6">
+      <div className="fixed top-3 left-0 right-0 z-3000 flex justify-center px-6">
         <header className="w-full max-w-400 bg-white/75 backdrop-blur-md border border-white/40 shadow-md rounded-full px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-10">
             <NavLink
