@@ -17,11 +17,11 @@ export default function AuthRequiredModal() {
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="mb-3 text-xl font-semibold text-text-title">
-          Додайте в обране
+          Тільки для зареєстрованих користувачів!
         </h2>
 
         <p className="mb-6 text-text-description">
-          Увійдіть або зареєструйтесь, щоб додати оголошення до обраного.
+          Увійдіть або зареєструйтесь, щоб мати можливість користуватись цим.
         </p>
 
         <div className="flex flex-wrap justify-end gap-3">

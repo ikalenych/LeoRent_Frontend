@@ -2,11 +2,14 @@ import { Heart, MapPin, BedDouble, LayoutGrid, Layers } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLiked } from "../context/LikedContext";
 import type { ApartmentCardProps } from "../types/apartment";
+import { motion } from "framer-motion";
+import { useState } from "react";
 
 type ApartmentCardViewProps = ApartmentCardProps & {
   isLiked?: boolean;
   onLike?: (id: string) => void;
   renovationType?: string;
+  buildingType?: string;
 };
 
 export default function ApartmentCard({
@@ -25,9 +28,12 @@ export default function ApartmentCard({
   isLiked,
   onLike,
   renovationType,
+  buildingType,
 }: ApartmentCardViewProps) {
   const navigate = useNavigate();
   const { liked, toggleLike } = useLiked();
+
+  const [animateLike, setAnimateLike] = useState(false);
 
   const isRealtor = ownerType === "Rieltor";
   const isDaily = rentType === "Daily";
@@ -47,11 +53,27 @@ export default function ApartmentCard({
     none: "bg-gray-100 text-gray-600",
   };
 
+  const buildingLabel: Record<string, string> = {
+    panel: "Панельний",
+    monolith: "Монолітний",
+    brick: "Цегляний",
+  };
+
+  const buildingColors: Record<string, string> = {
+    panel: "bg-blue-50 text-blue-700",
+    monolith: "bg-indigo-50 text-indigo-700",
+    brick: "bg-orange-50 text-orange-700",
+  };
+
   const likedState = typeof isLiked === "boolean" ? isLiked : liked.has(id);
 
   const handleLikeClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // trigger animation
+    setAnimateLike(true);
+    setTimeout(() => setAnimateLike(false), 400);
 
     if (onLike) {
       onLike(id);
@@ -66,6 +88,7 @@ export default function ApartmentCard({
       onClick={() => navigate(`/listings/${id}`)}
       className="group bg-surface rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 w-[300px] h-[360px] min-[480px]:w-[390px] min-[480px]:h-[420px] font-display cursor-pointer shrink-0"
     >
+      {/* IMAGE */}
       <div className="relative w-full h-[190px] min-[480px]:h-[256px] overflow-hidden">
         <img
           src={photos[0]?.url ?? "/placeholder.jpg"}
@@ -85,26 +108,41 @@ export default function ApartmentCard({
           {formattedCost} ₴
         </span>
 
+        {/* ❤️ LIKE BUTTON WITH ANIMATION */}
         <button
           onClick={handleLikeClick}
-          className="absolute bottom-3 right-3 bg-white/80 backdrop-blur-sm hover:bg-white p-2 rounded-full transition-colors duration-150 shadow-sm cursor-pointer"
+          className="absolute bottom-3 right-3 bg-white/80 backdrop-blur-sm hover:bg-white p-2 rounded-full shadow-sm cursor-pointer"
           aria-label="Додати до обраного"
         >
-          <Heart
-            className={`w-4 h-4 transition-colors ${
-              likedState
-                ? "fill-rose-500 text-rose-500"
-                : "text-text-description"
-            }`}
-          />
+          <motion.div
+            animate={
+              animateLike
+                ? { scale: 1.4, rotate: -10 }
+                : { scale: 1, rotate: 0 }
+            }
+            transition={{
+              type: "spring",
+              stiffness: 500,
+              damping: 20,
+            }}
+          >
+            <Heart
+              className={`w-4 h-4 transition-colors ${
+                likedState
+                  ? "fill-rose-500 text-rose-500"
+                  : "text-text-description"
+              }`}
+            />
+          </motion.div>
         </button>
       </div>
 
+      {/* CONTENT */}
       <div className="px-4 py-3 flex flex-col justify-between h-[170px] min-[480px]:h-[164px]">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2 flex-wrap">
             <span
-              className={`text-xs font-semibold px-2.5 py-0.5 rounded-full leading-5 ${
+              className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
                 isDaily
                   ? "bg-emerald-100 text-emerald-700"
                   : "bg-gray-100 text-gray-500"
@@ -112,21 +150,34 @@ export default function ApartmentCard({
             >
               {isDaily ? "Подобово" : "Тривала оренда"}
             </span>
+
             {renovationType && renovationLabel[renovationType] && (
               <span
-                className={`text-xs font-semibold px-2.5 py-0.5 rounded-full leading-5 ${renovationColors[renovationType] || "bg-amber-50 text-amber-700"}`}
+                className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
+                  renovationColors[renovationType]
+                }`}
               >
                 {renovationLabel[renovationType]}
               </span>
             )}
+
+            {buildingType && buildingLabel[buildingType] && (
+              <span
+                className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
+                  buildingColors[buildingType]
+                }`}
+              >
+                {buildingLabel[buildingType]}
+              </span>
+            )}
           </div>
 
-          <h3 className="text-text-title group-hover:text-primary font-semibold text-base leading-snug line-clamp-1 transition-colors duration-200">
+          <h3 className="text-text-title group-hover:text-primary font-semibold text-base line-clamp-1 transition-colors">
             {title}
           </h3>
 
           <div className="flex items-center gap-1 text-text-description text-sm">
-            <MapPin className="w-3.5 h-3.5 shrink-0" />
+            <MapPin className="w-3.5 h-3.5" />
             <span className="truncate">
               {location}
               {district ? `, ${district}` : ""}

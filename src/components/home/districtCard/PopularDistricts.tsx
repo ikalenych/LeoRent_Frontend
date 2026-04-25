@@ -16,37 +16,43 @@ const initialDistricts: DistrictItem[] = [
     id: 1,
     name: "Галицький",
     count: 0,
-    imageUrl: "https://picsum.photos/seed/halytskyi/600/400",
+    imageUrl:
+      "https://images.unsplash.com/photo-1520697830682-1f8f0f3c2a8a?auto=format&fit=crop&w=1200&q=80",
   },
   {
     id: 2,
     name: "Франківський",
     count: 0,
-    imageUrl: "https://picsum.photos/seed/frankivskyi/600/400",
+    imageUrl:
+      "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1200&q=80",
   },
   {
     id: 3,
     name: "Сихівський",
     count: 0,
-    imageUrl: "https://picsum.photos/seed/sykhivskyi/600/400",
+    imageUrl:
+      "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1200&q=80",
   },
   {
     id: 4,
     name: "Личаківський",
     count: 0,
-    imageUrl: "https://picsum.photos/seed/lychakivskyi/600/400",
+    imageUrl:
+      "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=1200&q=80",
   },
   {
     id: 5,
     name: "Шевченківський",
     count: 0,
-    imageUrl: "https://picsum.photos/seed/shevchenkivskyi/600/400",
+    imageUrl:
+      "https://images.unsplash.com/photo-1494522358652-f30e61a60313?auto=format&fit=crop&w=1200&q=80",
   },
   {
     id: 6,
     name: "Залізничний",
     count: 0,
-    imageUrl: "https://picsum.photos/seed/zaliznychnyi/600/400",
+    imageUrl:
+      "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?auto=format&fit=crop&w=1200&q=80",
   },
 ];
 
