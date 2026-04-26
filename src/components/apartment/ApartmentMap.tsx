@@ -113,7 +113,7 @@ export function ApartmentMap({ location }: Props) {
         </MapContainer>
 
         {loading && (
-          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-[100]">
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-[1000]">
             <span className="text-text-description text-sm">
               Завантаження карти...
             </span>
