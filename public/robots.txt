@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+Disallow: /profile
+Disallow: /login
+Disallow: /signup
+Disallow: /listing
+
+Disallow: /listings?
+
+Disallow: /api/
+
+Sitemap: https://leorent.netlify.app/sitemap.xml
