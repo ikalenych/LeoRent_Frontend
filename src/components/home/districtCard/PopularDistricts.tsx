@@ -12,13 +12,6 @@ type DistrictItem = {
   srcSet: string;
 };
 
-const buildSrcSet = (photoId: string) =>
-  [
-    `https://images.unsplash.com/${photoId}?auto=format&fit=crop&w=400&q=75 400w`,
-    `https://images.unsplash.com/${photoId}?auto=format&fit=crop&w=600&q=75 600w`,
-    `https://images.unsplash.com/${photoId}?auto=format&fit=crop&w=900&q=75 900w`,
-  ].join(", ");
-
 const initialDistricts: DistrictItem[] = [
   {
     id: 1,
