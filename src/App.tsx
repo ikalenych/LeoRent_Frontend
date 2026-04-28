@@ -48,7 +48,9 @@ export default function App() {
           path="/listing"
           element={
             <Suspense fallback={<PageLoader />}>
-              <CreateListing />
+              <ProtectedRoute>
+                <CreateListing />
+              </ProtectedRoute>
             </Suspense>
           }
         />

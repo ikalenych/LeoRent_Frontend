@@ -24,49 +24,43 @@ const initialDistricts: DistrictItem[] = [
     id: 1,
     name: "Галицький",
     count: 0,
-    imageUrl:
-      "https://images.unsplash.com/photo-1555993539-1732b0258235?auto=format&fit=crop&w=600&q=75",
-    srcSet: buildSrcSet("photo-1555993539-1732b0258235"),
+    imageUrl: "/galitsk.webp",
+    srcSet: "/galitsk.webp 400w, /galitsk.webp 600w, /galitsk.webp 900w",
   },
   {
     id: 2,
     name: "Франківський",
     count: 0,
-    imageUrl:
-      "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=75",
-    srcSet: buildSrcSet("photo-1502602898657-3e91760cbb34"),
+    imageUrl: "/frankiv.webp",
+    srcSet: "/frankiv.webp 400w, /frankiv.webp 600w, /frankiv.webp 900w",
   },
   {
     id: 3,
     name: "Сихівський",
     count: 0,
-    imageUrl:
-      "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=600&q=75",
-    srcSet: buildSrcSet("photo-1449824913935-59a10b8d2000"),
+    imageUrl: "/syhiv.webp",
+    srcSet: "/syhiv.webp 400w, /syhiv.webp 600w, /syhiv.webp 900w",
   },
   {
     id: 4,
     name: "Личаківський",
     count: 0,
-    imageUrl:
-      "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=600&q=75",
-    srcSet: buildSrcSet("photo-1505761671935-60b3a7427bad"),
+    imageUrl: "/lychakiv.webp",
+    srcSet: "/lychakiv.webp 400w, /lychakiv.webp 600w, /lychakiv.webp 900w",
   },
   {
     id: 5,
     name: "Шевченківський",
     count: 0,
-    imageUrl:
-      "https://images.unsplash.com/photo-1494522358652-f30e61a60313?auto=format&fit=crop&w=600&q=75",
-    srcSet: buildSrcSet("photo-1494522358652-f30e61a60313"),
+    imageUrl: "/shevchen.webp",
+    srcSet: "/shevchen.webp 400w, /shevchen.webp 600w, /shevchen.webp 900w",
   },
   {
     id: 6,
     name: "Залізничний",
     count: 0,
-    imageUrl:
-      "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?auto=format&fit=crop&w=600&q=75",
-    srcSet: buildSrcSet("photo-1480714378408-67cf0d13bc1b"),
+    imageUrl: "/zaliz.webp",
+    srcSet: "/zaliz.webp 400w, /zaliz.webp 600w, /zaliz.webp 900w",
   },
 ];
 
