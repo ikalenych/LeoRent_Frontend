@@ -43,7 +43,7 @@ export function Seo({
 
       <meta
         property="og:image"
-        content={image || "https://leorent.netlify.app/default.jpg"}
+        content={image || "https://leorent.netlify.app/og-image.jpg"}
       />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
@@ -53,7 +53,7 @@ export function Seo({
       <meta name="twitter:description" content={description} />
       <meta
         name="twitter:image"
-        content={image || "https://leorent.netlify.app/default.jpg"}
+        content={image || "https://leorent.netlify.app/og-image.jpg"}
       />
     </Helmet>
   );
