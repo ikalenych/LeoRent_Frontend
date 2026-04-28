@@ -20,58 +20,41 @@ export function Seo({
       <html lang="uk" />
       <title>{title}</title>
 
-      <meta key="description" name="description" content={description} />
+      <meta name="description" content={description} />
       <meta
-        key="robots"
         name="robots"
         content={noIndex ? "noindex,nofollow" : "index,follow"}
       />
 
-      {canonical && <link key="canonical" rel="canonical" href={canonical} />}
+      {canonical && <link rel="canonical" href={canonical} />}
 
+      {/* LANG ALTERNATES */}
+      {canonical && <link rel="alternate" hrefLang="uk-UA" href={canonical} />}
       {canonical && (
-        <link
-          key="alternate-uk"
-          rel="alternate"
-          hrefLang="uk-UA"
-          href={canonical}
-        />
+        <link rel="alternate" hrefLang="x-default" href={canonical} />
       )}
 
-      {canonical && (
-        <link
-          key="alternate-default"
-          rel="alternate"
-          hrefLang="x-default"
-          href={canonical}
-        />
-      )}
+      <meta property="og:locale" content="uk_UA" />
+      <meta property="og:type" content="website" />
+      <meta property="og:title" content={title} />
+      <meta property="og:description" content={description} />
 
-      <meta key="og:locale" property="og:locale" content="uk_UA" />
-      <meta key="og:type" property="og:type" content="website" />
-      <meta key="og:title" property="og:title" content={title} />
-      <meta
-        key="og:description"
-        property="og:description"
-        content={description}
-      />
-      {canonical && <meta key="og:url" property="og:url" content={canonical} />}
-      {image && <meta key="og:image" property="og:image" content={image} />}
+      {canonical && <meta property="og:url" content={canonical} />}
 
       <meta
-        key="twitter:card"
-        name="twitter:card"
-        content="summary_large_image"
+        property="og:image"
+        content={image || "https://leorent.netlify.app/default.jpg"}
       />
-      <meta key="twitter:title" name="twitter:title" content={title} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={title} />
+      <meta name="twitter:description" content={description} />
       <meta
-        key="twitter:description"
-        name="twitter:description"
-        content={description}
+        name="twitter:image"
+        content={image || "https://leorent.netlify.app/default.jpg"}
       />
-      {image && (
-        <meta key="twitter:image" name="twitter:image" content={image} />
-      )}
     </Helmet>
   );
 }
