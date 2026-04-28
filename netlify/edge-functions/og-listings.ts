@@ -28,7 +28,7 @@ export default async (request: Request, context: Context) => {
       ? apt.description.slice(0, 160)
       : `${apt.rooms} кімн., ${apt.square} м², ${apt.location}. Оренда на LeoRent.`;
     const image =
-      apt.pictures?.[0]?.url || "https://leorent.netlify.app/hero.webp";
+      apt.pictures?.[0]?.url || "https://leorent.netlify.app/og-image.jpg";
     const canonical = `https://leorent.netlify.app/listings/${id}`;
 
     const html = `<!DOCTYPE html>
