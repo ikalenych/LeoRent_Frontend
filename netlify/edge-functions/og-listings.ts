@@ -4,16 +4,17 @@ import { Context } from "https://edge.netlify.com";
 const API_URL = "https://leorent-backend.onrender.com";
 
 const BOT_REGEX =
-  /facebookexternalhit|twitterbot|telegrambot|linkedinbot|googlebot|whatsapp|vkshare|slackbot|discordbot/i;
+  /facebookexternalhit|twitterbot|telegrambot|linkedinbot|googlebot|whatsapp|vkshare|slackbot|discordbot|applebot|bingbot|rogerbot|embedly|quora|outbrain|w3c_validator|iframely/i;
 
 export default async (request: Request, context: Context) => {
   const url = new URL(request.url);
   const userAgent = request.headers.get("user-agent") || "";
 
   const isBot = BOT_REGEX.test(userAgent);
+  const isDebug = url.searchParams.has("og_debug");
   const match = url.pathname.match(/^\/listings\/([^/]+)$/);
 
-  if (!isBot || !match) return context.next();
+  if ((!isBot && !isDebug) || !match) return context.next();
 
   const id = match[1];
 
