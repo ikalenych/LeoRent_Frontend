@@ -3,7 +3,7 @@ import heroBg from "/hero.webp";
 
 export function Hero() {
   return (
-    <section className="relative w-full h-screen max-h-320 min-h-150 flex items-center justify-center overflow-hidden">
+    <section className="relative w-full h-screen max-h-320 min-h-150 flex items-center justify-center">
       <img
         src={heroBg}
         alt=""
