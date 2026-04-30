@@ -10,12 +10,11 @@ const districts = [
   "Сихівський",
   "Франківський",
   "Залізничний",
+  "Шевченківський",
 ];
 
 const rooms = ["Будь-яка", "1", "2", "3", "4+"];
-
 const rentTypes = ["Будь-який", "Тривала", "Подобова"];
-
 const ownerTypes = ["Всі", "Власник", "Рієлтор"];
 
 interface SelectDropdownProps {
@@ -40,7 +39,6 @@ function SelectDropdown({
         setOpen(false);
       }
     }
-
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
@@ -58,9 +56,7 @@ function SelectDropdown({
       >
         {value}
         <svg
-          className={`w-3.5 h-3.5 text-white/60 transition-transform duration-200 shrink-0 ${
-            open ? "rotate-180" : ""
-          }`}
+          className={`w-3.5 h-3.5 text-white/60 transition-transform duration-200 shrink-0 ${open ? "rotate-180" : ""}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -71,7 +67,7 @@ function SelectDropdown({
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-2 w-full bg-white md:bg-slate-800/80 backdrop-blur-xl border border-gray-200 md:border-white/30 rounded-xl shadow-2xl z-[9999] overflow-hidden">
+        <div className="absolute top-full left-0 mt-2 w-full bg-white min-[900px]:bg-slate-800/80 backdrop-blur-xl border border-gray-200 min-[900px]:border-white/30 rounded-xl shadow-2xl z-[9999] overflow-hidden">
           <div className="py-1.5">
             {options.map((opt) => (
               <button
@@ -81,10 +77,10 @@ function SelectDropdown({
                   onChange(opt);
                   setOpen(false);
                 }}
-                className={`w-full text-left px-4 py-2.5 text-sm transition-colors cursor-pointer hover:bg-gray-100 md:hover:bg-white/10 ${
+                className={`w-full text-left px-4 py-2.5 text-sm transition-colors cursor-pointer hover:bg-gray-100 min-[900px]:hover:bg-white/10 ${
                   value === opt
-                    ? "text-emerald-400 font-semibold md:text-emerald-400 text-emerald-600"
-                    : "text-gray-800 md:text-white/90"
+                    ? "text-emerald-600 font-semibold min-[900px]:text-emerald-400"
+                    : "text-gray-800 min-[900px]:text-white/90"
                 }`}
               >
                 {opt}
@@ -113,42 +109,24 @@ export function HeroSearchBar() {
 
   const handleSearch = () => {
     const params = new URLSearchParams();
-
-    if (district !== "Всі райони") {
-      params.set("district", district);
-    }
-
-    if (priceFrom) {
-      params.set("price_min", priceFrom);
-    }
-
-    if (priceTo) {
-      params.set("price_max", priceTo);
-    }
-
-    if (room !== "Будь-яка") {
-      params.set("rooms", room === "4+" ? "4" : room);
-    }
-
-    if (rentType !== "Будь-який") {
+    if (district !== "Всі райони") params.set("district", district);
+    if (priceFrom) params.set("price_min", priceFrom);
+    if (priceTo) params.set("price_max", priceTo);
+    if (room !== "Будь-яка") params.set("rooms", room === "4+" ? "4" : room);
+    if (rentType !== "Будь-який")
       params.set("rent_type", rentType === "Подобова" ? "Daily" : "Default");
-    }
-
-    if (ownerType !== "Всі") {
+    if (ownerType !== "Всі")
       params.set("owner_type", ownerType === "Власник" ? "Owner" : "Rieltor");
-    }
-
     params.set("sort", "newest");
     params.set("page", "1");
-
     navigate(`/listings?${params.toString()}`);
   };
 
   const fieldClass =
-    "flex flex-col flex-1 border-b md:border-b-0 md:border-r border-white/20 last:border-0 overflow-visible";
+    "flex flex-col flex-1 border-b min-[900px]:border-b-0 min-[900px]:border-r border-white/20 last:border-0";
 
   return (
-    <div className="bg-white/25 backdrop-blur-md border border-white/30 rounded-2xl flex flex-col md:flex-row items-stretch overflow-visible">
+    <div className="bg-white/25 backdrop-blur-md border border-white/30 rounded-2xl flex flex-col min-[900px]:flex-row items-stretch relative z-10">
       <div className={fieldClass}>
         <SelectDropdown
           label="Район"
@@ -162,7 +140,6 @@ export function HeroSearchBar() {
         <span className="text-[10px] font-semibold uppercase tracking-widest text-white/60 px-4 pt-3">
           Ціна від/до
         </span>
-
         <div className="flex items-center gap-2 px-4 pb-3 mt-1">
           <input
             type="text"
@@ -175,9 +152,7 @@ export function HeroSearchBar() {
             }
             className="w-full text-sm font-medium text-white placeholder:text-white/40 bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
-
           <span className="text-white/40 text-sm shrink-0">—</span>
-
           <input
             type="text"
             inputMode="numeric"
@@ -210,7 +185,7 @@ export function HeroSearchBar() {
         />
       </div>
 
-      <div className={`${fieldClass}`}>
+      <div className={fieldClass}>
         <SelectDropdown
           label="Від кого"
           options={ownerTypes}
@@ -222,7 +197,7 @@ export function HeroSearchBar() {
       <div className="p-2 flex items-center">
         <Button
           size="lg"
-          className="w-full md:w-auto rounded-xl gap-2 px-10 cursor-pointer"
+          className="w-full min-[900px]:w-auto rounded-xl gap-2 px-10 cursor-pointer"
           onClick={handleSearch}
         >
           <Search size={18} />
