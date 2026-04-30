@@ -108,7 +108,6 @@ export default function ApartmentCard({
           {formattedCost} ₴
         </span>
 
-        {/* ❤️ LIKE BUTTON WITH ANIMATION */}
         <button
           onClick={handleLikeClick}
           className="absolute bottom-3 right-3 bg-white/80 backdrop-blur-sm hover:bg-white p-2 rounded-full shadow-sm cursor-pointer"
