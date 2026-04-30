@@ -86,7 +86,11 @@ export async function firebaseSignupRequest(idToken: string) {
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(getErrorMessage(data, "Не вдалося створити акаунт"));
+    const err = new Error(
+      getErrorMessage(data, "Не вдалося створити акаунт"),
+    ) as any;
+    err.status = response.status; // ← додаємо статус
+    throw err;
   }
 
   return data;

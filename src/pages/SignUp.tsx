@@ -7,6 +7,7 @@ import { SignUpStepThree } from "../components/auth/SignUpStepThree";
 import { useAuth } from "../context/AuthContext";
 import { auth } from "../lib/firebase";
 import { firebaseAuthRequest } from "../lib/auth-api";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 
 export type UserRole = "owner" | "realtor" | "tenant" | "";
 
@@ -186,7 +187,8 @@ export default function SignUp() {
   const [stepTwoError, setStepTwoError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [isGoogleAuth, setIsGoogleAuth] = useState(false);
+  const [googleIdToken, setGoogleIdToken] = useState<string | null>(null);
   useEffect(() => {
     const persistedData: PersistedSignUpState = {
       currentStep,
@@ -220,7 +222,35 @@ export default function SignUp() {
   function previousStep() {
     setCurrentStep((prev) => (prev > 1 ? ((prev - 1) as 1 | 2 | 3) : prev));
   }
+  async function handleGoogleSignIn() {
+    setSubmitError("");
 
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+
+      const user = result.user;
+      const idToken = await user.getIdToken();
+
+      const [firstName = "", lastName = ""] = (user.displayName || "").split(
+        " ",
+      );
+
+      setFormData((prev) => ({
+        ...prev,
+        email: user.email || "",
+        firstName,
+        lastName,
+      }));
+
+      setIsGoogleAuth(true);
+      setGoogleIdToken(idToken);
+
+      setCurrentStep(2);
+    } catch (error: any) {
+      setSubmitError(error.message || "Google auth error");
+    }
+  }
   function validateStepOne() {
     const errors: StepOneErrors = {};
     const emailValidation = validateEmailValue(formData.email);
@@ -326,9 +356,15 @@ export default function SignUp() {
     setIsSubmitting(true);
 
     try {
-      let idToken = localStorage.getItem("token");
+      let idToken: string;
 
-      if (!idToken || formData.password !== "google-auth") {
+      if (isGoogleAuth) {
+        if (!googleIdToken) {
+          throw new Error("Google token missing");
+        }
+
+        idToken = googleIdToken;
+      } else {
         const credential = await createUserWithEmailAndPassword(
           auth,
           emailValidation.value,
@@ -391,6 +427,7 @@ export default function SignUp() {
           setSubmitError("");
         }}
         onNext={handleStepOneSubmit}
+        onGoogleSignIn={handleGoogleSignIn}
       />
     );
   }
